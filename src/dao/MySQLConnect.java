@@ -1,56 +1,75 @@
 package dao;
 
+import javax.swing.JOptionPane;
+import java.io.FileInputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.util.Properties;
 
 public class MySQLConnect {
-    private static final String HOST = "localhost";
-    private static final String PORT = "3306";
-    private static final String DATABASENAME = "motorbikedb";
-    private static final String USERNAME = "root";
-    private static final String PASSWORD = "123456";
-
-    private static Connection connection = null;
+    private static Connection conn = null;
 
     public static Connection getConnection() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                String url = "jdbc:mysql://" + HOST + ":" + PORT + "/" + DATABASENAME
-                        + "?useUnicode=true&characterEncoding=UTF-8";
+        if (conn == null) {
+            // Dùng FileInputStream để đọc trực tiếp từ thư mục gốc của project
+            // Đường dẫn "resources/db.properties" trỏ thẳng vào thư mục resources của bạn
+            try (FileInputStream input = new FileInputStream("resources/db.properties")) {
 
-                Class.forName("com.mysql.cj.jdbc.Driver");
+                // Tải dữ liệu từ file properties
+                Properties prop = new Properties();
+                prop.load(input);
 
-                connection = DriverManager.getConnection(url, USERNAME, PASSWORD);
-                System.out.println("Kết nối CSDL thành công!");
+                // Lấy thông tin kết nối
+                String url = prop.getProperty("db.url");
+                String user = prop.getProperty("db.username");
+                String pass = prop.getProperty("db.password");
+
+                // Thực hiện kết nối
+                Class.forName("com.mysql.jdbc.Driver");
+                conn = DriverManager.getConnection(url, user, pass);
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null,
+                        "Không thể kết nối đến Cơ sở dữ liệu.\nChi tiết lỗi: " + e.getMessage(),
+                        "Lỗi Kết Nối CSDL",
+                        JOptionPane.ERROR_MESSAGE);
+                e.printStackTrace();
             }
-        } catch (ClassNotFoundException e) {
-            System.err.println("Lỗi: Không tìm thấy thư viện MySQL JDBC Driver (mysql-connector-java.jar).");
-            e.printStackTrace();
-        } catch (SQLException e) {
-            System.err.println("Lỗi: Không thể kết nối tới Cơ sở dữ liệu. Hãy kiểm tra lại thông tin cấu hình.");
-            e.printStackTrace();
         }
-        return connection;
+        return conn;
     }
 
     public static void closeConnection() {
         try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
                 System.out.println("Đã đóng kết nối CSDL.");
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.err.println("Lỗi khi đóng kết nối: " + e.getMessage());
         }
     }
 
     public static void main(String[] args) {
-        Connection conn = MySQLConnect.getConnection();
+        System.out.println("Đang thử kết nối đến cơ sở dữ liệu...");
 
-        if (conn != null) {
-            System.out.println("Sẵn sàng viết các hàm DAO!");
-            MySQLConnect.closeConnection();
+        Connection testConn = getConnection();
+
+        if (testConn != null) {
+            System.out.println("Kết nối CSDL thành công!");
+            JOptionPane.showMessageDialog(null,
+                    "Kết nối Cơ sở dữ liệu thành công!",
+                    "Thông báo",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            try {
+                testConn.close();
+                System.out.println("Đã đóng kết nối an toàn.");
+            } catch (Exception e) {
+                System.out.println("Lỗi khi đóng kết nối: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Kết nối thất bại. Hãy kiểm tra lại file db.properties và đảm bảo MySQL đang chạy.");
         }
     }
 }
