@@ -1,7 +1,7 @@
-DROP DATABASE IF EXISTS MotorbikeRentalDB;
+DROP DATABASE IF EXISTS motorbikeDB;
 
-CREATE DATABASE MotorbikeRentalDB;
-USE MotorbikeRentalDB;
+CREATE DATABASE motorbikeDB;
+USE motorbikeDB;
 
 -- PART 1: TABLES DEFINITION (DDL)
 -- 1. TABLE: USERS
