@@ -2,7 +2,7 @@ package dto;
 
 public class XeMayDTO {
     private String vehicleCode;
-    private String vehicleName;
+    private String vehicleName; // Cột này gộp từ brand + model bên DAO
     private String licensePlate;
     private double rentalPricePerDay;
     private String status;

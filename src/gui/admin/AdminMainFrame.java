@@ -72,13 +72,13 @@ public class AdminMainFrame extends JFrame {
         // Khởi tạo các Panel con
         JPanel dashboardPanel = createPlaceholderPanel("Màn hình Thống kê (Dashboard)");
         BikeManagementPanel bikeManagementPanel = new BikeManagementPanel();
-        JPanel customerPanel = createPlaceholderPanel("Màn hình Quản lý Khách hàng");
+        CustomerManagementPanel customerManagementPanel = new CustomerManagementPanel();
         ContractManagementPanel contractPanel = new ContractManagementPanel();
 
         // Add vào CardLayout với tên định danh
         mainContentPanel.add(dashboardPanel, "Dashboard");
         mainContentPanel.add(bikeManagementPanel, "Bike");
-        mainContentPanel.add(customerPanel, "Customer");
+        mainContentPanel.add(customerManagementPanel, "Customer");
         mainContentPanel.add(contractPanel, "Contract");
 
         // ACTION CHO MENU CHUYỂN TRANG

@@ -70,11 +70,13 @@ public class BikeManagementPanel extends JPanel {
         topPanel.add(toolbarPanel, BorderLayout.CENTER);
 
         // --- 3. Bảng Dữ Liệu (CENTER) ---
-        String[] columns = {"Mã Xe", "Tên Xe", "Biển Số", "Loại Xe", "Giá Thuê/Ngày", "Trạng Thái"};
+        // SỬA DÒNG NÀY (Xóa "Loại Xe"):
+        String[] columns = {"Mã Xe", "Tên Xe", "Biển Số", "Giá Thuê/Ngày", "Trạng Thái"};
+
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Không cho phép sửa trực tiếp trên bảng
+                return false;
             }
         };
 
