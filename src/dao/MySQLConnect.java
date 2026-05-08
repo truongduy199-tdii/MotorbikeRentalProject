@@ -50,7 +50,7 @@ public class MySQLConnect {
         }
     }
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
         System.out.println("Đang thử kết nối đến cơ sở dữ liệu...");
 
         Connection testConn = getConnection();
@@ -71,5 +71,5 @@ public class MySQLConnect {
         } else {
             System.out.println("Kết nối thất bại. Hãy kiểm tra lại file db.properties và đảm bảo MySQL đang chạy.");
         }
-    }
+    }*/
 }
