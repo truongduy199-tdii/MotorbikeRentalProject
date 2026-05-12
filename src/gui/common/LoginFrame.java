@@ -76,11 +76,12 @@ public class LoginFrame extends JFrame {
         btnLogin = new JButton("ĐĂNG NHẬP");
         btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnLogin.setForeground(Color.WHITE);
-        btnLogin.setBackground(new Color(25, 118, 210));
+        btnLogin.setBackground(new Color(25, 118, 207));
         btnLogin.setFocusPainted(false);
         btnLogin.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnLogin.setMaximumSize(new Dimension(150, 45));
+        btnLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Hiệu ứng Hover cho nút bấm
         btnLogin.addMouseListener(new java.awt.event.MouseAdapter() {
