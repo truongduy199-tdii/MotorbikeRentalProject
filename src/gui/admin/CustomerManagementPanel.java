@@ -17,7 +17,7 @@ public class CustomerManagementPanel extends JPanel {
     public CustomerManagementPanel() {
         khachHangBUS = new KhachHangBUS();
         initComponents();
-        loadDataFormDB();
+        loadDataFromDB();
     }
 
     private void initComponents() {
@@ -66,18 +66,21 @@ public class CustomerManagementPanel extends JPanel {
         btnRefresh.setFocusPainted(false);
         btnRefresh.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
 
-        btnRefresh.addActionListener(e -> loadDataFormDB());
+        btnRefresh.addActionListener(e -> loadDataFromDB());
 
         pnlAction.add(btnRefresh);
         this.add(pnlAction, BorderLayout.SOUTH);
     }
 
-    private void loadDataFormDB() {
+    private void loadDataFromDB() {
         tableModel.setRowCount(0); // Xóa dữ liệu cũ
         List<KhachHangDTO> list = khachHangBUS.getAllCustomers();
 
+        System.out.println("DEBUG: getAllCustomers() trả về: " + (list == null ? "NULL" : list.size() + " khách hàng"));
+
         // KIỂM TRA NULL: Ngăn chặn lỗi văng app nếu Database / BUS có vấn đề
         if (list == null || list.isEmpty()) {
+            System.out.println("DEBUG: Danh sách khách hàng trống!");
             return;
         }
 

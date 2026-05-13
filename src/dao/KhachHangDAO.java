@@ -13,9 +13,18 @@ public class KhachHangDAO {
         List<KhachHangDTO> list = new ArrayList<>();
         String sql = "SELECT * FROM CUSTOMERS ORDER BY customer_id DESC";
 
-        try (Connection conn = MySQLConnect.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        Connection conn = null;
+        try {
+            conn = MySQLConnect.getConnection();
+
+            // KIỂM TRA NULL KẾT NỐI
+            if (conn == null) {
+                System.err.println("LỖI: Không thể kết nối tới Database!");
+                return list; // Trả về danh sách rỗng
+            }
+
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 KhachHangDTO kh = new KhachHangDTO();
@@ -31,9 +40,25 @@ public class KhachHangDAO {
                 kh.setStatus(rs.getString("status"));
                 list.add(kh);
             }
+
+            rs.close();
+            ps.close();
+
         } catch (Exception e) {
+            System.err.println("❌ LỖI KHI LẤY DANH SÁCH KHÁCH HÀNG: " + e.getMessage());
+            System.err.println("SQL: " + sql);
             e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
+
+        System.out.println("✓ Đã lấy " + list.size() + " khách hàng từ database");
         return list;
     }
 }
