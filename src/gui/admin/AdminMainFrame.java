@@ -84,7 +84,10 @@ public class AdminMainFrame extends JFrame {
         // ACTION CHO MENU CHUYỂN TRANG
         btnDashboard.addActionListener(e -> cardLayout.show(mainContentPanel, "Dashboard"));
         btnBike.addActionListener(e -> cardLayout.show(mainContentPanel, "Bike"));
-        btnCustomer.addActionListener(e -> cardLayout.show(mainContentPanel, "Customer"));
+        btnCustomer.addActionListener(e -> {
+            customerManagementPanel.loadDataFromDB(); // Kích hoạt tải lại dữ liệu mới nhất
+            cardLayout.show(mainContentPanel, "Customer");
+        });
         btnContract.addActionListener(e -> cardLayout.show(mainContentPanel, "Contract"));
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(

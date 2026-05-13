@@ -11,54 +11,36 @@ public class KhachHangDAO {
 
     public List<KhachHangDTO> getAllCustomers() {
         List<KhachHangDTO> list = new ArrayList<>();
+        // Mọi thông tin hiện tại đều đã nằm trong bảng CUSTOMERS
         String sql = "SELECT * FROM CUSTOMERS ORDER BY customer_id DESC";
 
-        Connection conn = null;
-        try {
-            conn = MySQLConnect.getConnection();
+        try (Connection conn = MySQLConnect.getConnection()) {
+            if (conn == null) return null;
 
-            // KIỂM TRA NULL KẾT NỐI
-            if (conn == null) {
-                System.err.println("LỖI: Không thể kết nối tới Database!");
-                return list; // Trả về danh sách rỗng
-            }
+            try (PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
 
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-                KhachHangDTO kh = new KhachHangDTO();
-                kh.setCustomerId(rs.getInt("customer_id"));
-                kh.setUserId(rs.getInt("user_id"));
-                kh.setFullName(rs.getString("full_name"));
-                kh.setPhone(rs.getString("phone"));
-                kh.setEmail(rs.getString("email"));
-                kh.setCccd(rs.getString("cccd"));
-                kh.setBirthday(rs.getDate("birthday"));
-                kh.setAddress(rs.getString("address"));
-                kh.setDriverLicenseNumber(rs.getString("driver_license_number"));
-                kh.setStatus(rs.getString("status"));
-                list.add(kh);
-            }
-
-            rs.close();
-            ps.close();
-
-        } catch (Exception e) {
-            System.err.println("❌ LỖI KHI LẤY DANH SÁCH KHÁCH HÀNG: " + e.getMessage());
-            System.err.println("SQL: " + sql);
-            e.printStackTrace();
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                while (rs.next()) {
+                    KhachHangDTO kh = new KhachHangDTO();
+                    kh.setCustomerId(rs.getInt("customer_id"));
+                    kh.setUserId(rs.getInt("user_id"));
+                    // Lấy trực tiếp từ bảng CUSTOMERS
+                    kh.setFullName(rs.getString("full_name"));
+                    kh.setPhone(rs.getString("phone"));
+                    kh.setEmail(rs.getString("email"));
+                    kh.setCccd(rs.getString("cccd"));
+                    kh.setBirthday(rs.getDate("birthday"));
+                    kh.setAddress(rs.getString("address"));
+                    kh.setDriverLicenseNumber(rs.getString("driver_license_number"));
+                    kh.setStatus(rs.getString("status"));
+                    list.add(kh);
                 }
             }
+        } catch (Exception e) {
+            System.err.println("❌ LỖI KHI LẤY DANH SÁCH KHÁCH HÀNG: " + e.getMessage());
+            e.printStackTrace();
+            return null;
         }
-
-        System.out.println("✓ Đã lấy " + list.size() + " khách hàng từ database");
         return list;
     }
 }

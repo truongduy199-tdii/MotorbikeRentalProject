@@ -14,11 +14,6 @@ public class KhachHangBUS {
     }
 
     public List<KhachHangDTO> getAllCustomers() {
-        List<KhachHangDTO> list = khachHangDAO.getAllCustomers();
-        // Tránh lỗi null bảo vệ GUI
-        if (list == null) {
-            return new ArrayList<>();
-        }
-        return list;
+        return khachHangDAO.getAllCustomers();
     }
 }

@@ -72,14 +72,19 @@ public class CustomerManagementPanel extends JPanel {
         this.add(pnlAction, BorderLayout.SOUTH);
     }
 
-    private void loadDataFromDB() {
+    public void loadDataFromDB() {
         tableModel.setRowCount(0); // Xóa dữ liệu cũ
         List<KhachHangDTO> list = khachHangBUS.getAllCustomers();
 
         System.out.println("DEBUG: getAllCustomers() trả về: " + (list == null ? "NULL" : list.size() + " khách hàng"));
 
-        // KIỂM TRA NULL: Ngăn chặn lỗi văng app nếu Database / BUS có vấn đề
-        if (list == null || list.isEmpty()) {
+        // Nếu list bị null (Lỗi kết nối DB) -> Hiển thị cảnh báo cho Admin
+        if (list == null) {
+            JOptionPane.showMessageDialog(this, "Không thể tải dữ liệu Khách hàng. Vui lòng kiểm tra lại kết nối Cơ sở dữ liệu!", "Lỗi kết nối", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (list.isEmpty()) {
             System.out.println("DEBUG: Danh sách khách hàng trống!");
             return;
         }
