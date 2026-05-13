@@ -7,13 +7,10 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 
 public class XeMayDAO {
-
     public ArrayList<XeMayDTO> layDanhSachXeMay() {
-        ArrayList<XeMayDTO> list = new ArrayList<>();
-        // Nối brand và model thành vehicle_name, lấy các trường cần thiết
-        String sql = "SELECT vehicle_code, CONCAT(brand, ' ', model) AS vehicle_name, " +
-                "license_plate, rental_price_per_day, status " +
-                "FROM VEHICLES ORDER BY created_at DESC";
+        ArrayList<XeMayDTO> ds = new ArrayList<>();
+        // Lấy tất cả các cột để tránh lỗi thiếu dữ liệu
+        String sql = "SELECT * FROM VEHICLES";
 
         try (Connection conn = MySQLConnect.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -21,17 +18,21 @@ public class XeMayDAO {
 
             while (rs.next()) {
                 XeMayDTO xe = new XeMayDTO();
+                xe.setVehicleId(rs.getInt("vehicle_id"));
                 xe.setVehicleCode(rs.getString("vehicle_code"));
-                xe.setVehicleName(rs.getString("vehicle_name"));
+                xe.setBrand(rs.getString("brand"));
+                xe.setModel(rs.getString("model"));
                 xe.setLicensePlate(rs.getString("license_plate"));
+                xe.setColor(rs.getString("color"));
+                xe.setManufactureYear(rs.getInt("manufacture_year"));
                 xe.setRentalPricePerDay(rs.getDouble("rental_price_per_day"));
+                xe.setRentalPricePerHour(rs.getDouble("rental_price_per_hour"));
                 xe.setStatus(rs.getString("status"));
-
-                list.add(xe);
+                ds.add(xe);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Nếu bảng vẫn trống, hãy check lỗi ở Console (Output) của IntelliJ
         }
-        return list;
+        return ds;
     }
 }

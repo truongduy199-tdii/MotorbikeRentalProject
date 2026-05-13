@@ -148,7 +148,9 @@ public class LoginFrame extends JFrame {
 
             // Phân quyền chuyển trang
             if (account.getRole().equals("ADMIN")) {
-                new AdminMainFrame().setVisible(true); // Mở form Admin
+                AdminMainFrame adminFrame = new AdminMainFrame();
+                adminFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                adminFrame.setVisible(true);
             } else {
                 // new ThueXeGUI().setVisible(true); // Mở form Customer (Bỏ comment khi bạn đã tạo class này)
                 JOptionPane.showMessageDialog(this, "Chuyển đến giao diện Khách hàng (Đang phát triển)");

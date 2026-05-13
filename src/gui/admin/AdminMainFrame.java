@@ -46,15 +46,13 @@ public class AdminMainFrame extends JFrame {
         lblTitle.setBorder(new EmptyBorder(0, 0, 30, 0));
 
         // Menu
-        JButton btnDashboard = createMenuButton("1. Dashboard");
-        JButton btnBike = createMenuButton("2. Quản lý Xe");
-        JButton btnCustomer = createMenuButton("3. Quản lý Khách hàng");
-        JButton btnContract = createMenuButton("4. Quản lý Hợp đồng");
+        JButton btnBike = createMenuButton("1. Quản lý Xe");
+        JButton btnCustomer = createMenuButton("2. Quản lý Khách hàng");
+        JButton btnContract = createMenuButton("3. Quản lý Hợp đồng");
         JButton btnLogout = createMenuButton("Đăng xuất");
         btnLogout.setForeground(new Color(255, 82, 82));
         // Thêm vào Sidebar
         sidebarPanel.add(lblTitle);
-        sidebarPanel.add(btnDashboard);
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         sidebarPanel.add(btnBike);
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -70,19 +68,16 @@ public class AdminMainFrame extends JFrame {
         mainContentPanel.setBackground(new Color(245, 247, 250));
 
         // Khởi tạo các Panel con
-        JPanel dashboardPanel = createPlaceholderPanel("Màn hình Thống kê (Dashboard)");
         BikeManagementPanel bikeManagementPanel = new BikeManagementPanel();
         CustomerManagementPanel customerManagementPanel = new CustomerManagementPanel();
         ContractManagementPanel contractPanel = new ContractManagementPanel();
 
         // Add vào CardLayout với tên định danh
-        mainContentPanel.add(dashboardPanel, "Dashboard");
         mainContentPanel.add(bikeManagementPanel, "Bike");
         mainContentPanel.add(customerManagementPanel, "Customer");
         mainContentPanel.add(contractPanel, "Contract");
 
         // ACTION CHO MENU CHUYỂN TRANG
-        btnDashboard.addActionListener(e -> cardLayout.show(mainContentPanel, "Dashboard"));
         btnBike.addActionListener(e -> cardLayout.show(mainContentPanel, "Bike"));
         btnCustomer.addActionListener(e -> {
             customerManagementPanel.loadDataFromDB(); // Kích hoạt tải lại dữ liệu mới nhất

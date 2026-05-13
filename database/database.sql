@@ -92,7 +92,7 @@ CREATE TABLE PAYMENTS (
 -- 1. INSERT DATA: USERS
 INSERT INTO USERS (username, password_hash, role)
 VALUES
-    ('admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'ADMIN'),
+    ('admin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'ADMIN'),
     ('0901666124', 'f9573f8ad701007c2217bb602521a6b1fa9e3e52ef2cb84b95618f45650efd61', 'CUSTOMER'),
     ('0986164589', 'f2ff4cea9ca5162e631d6fec17b6e36d8a455bcb1ed163a2058d9ce136b210c1', 'CUSTOMER'),
     ('0903484322', '6fa304a68ae214a426f9850bfc1791e61156be1db1ee4534d2041d320e645245', 'CUSTOMER'),
@@ -109,8 +109,8 @@ VALUES
 -- 3. INSERT DATA: VEHICLES
 INSERT INTO VEHICLES (vehicle_code, brand, model, license_plate, color, manufacture_year, rental_price_per_day, rental_price_per_hour, status)
 VALUES
-    ('XM001', 'Honda', 'AirBlade 125', '43D1-123.45', 'Black', 2022, 150000, 20000, 'AVAILABLE'),
-    ('XM002', 'Yamaha', 'Exciter 150', '43D1-678.90', 'Blue', 2021, 200000, 30000, 'AVAILABLE'),
+    ('XM001', 'Honda', 'AirBlade 125', '43D1-123.45', 'Đen', 2022, 150000, 20000, 'AVAILABLE'),
+    ('XM002', 'Yamaha', 'Exciter 150', '43D1-678.90', 'Xanh', 2021, 200000, 30000, 'AVAILABLE'),
     ('XM003', 'Honda', 'Vision 2023', '43D1-222.33', 'Trắng', 2023, 120000, 15000, 'AVAILABLE'),
     ('XM004', 'Honda', 'Wave Alpha', '43D1-444.55', 'Xanh', 2021, 100000, 10000, 'RENTED'),
     ('XM005', 'Honda', 'SH 150i', '43D1-666.77', 'Đen', 2022, 300000, 40000, 'AVAILABLE'),
