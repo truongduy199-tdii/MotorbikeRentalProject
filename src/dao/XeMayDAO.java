@@ -26,7 +26,7 @@ public class XeMayDAO {
 
             while (rs.next()) {
                 XeMayDTO xe = new XeMayDTO();
-                
+
                 // Các trường cơ bản (Của Nam)
                 xe.setVehicleId(rs.getInt("vehicle_id"));
                 xe.setVehicleCode(rs.getString("vehicle_code"));
@@ -40,7 +40,7 @@ public class XeMayDAO {
                 // Logic giá tiền (Của Nam)
                 double pricePerDay = rs.getDouble("rental_price_per_day");
                 xe.setRentalPricePerDay(pricePerDay);
-                xe.setRentalPricePerHour(pricePerDay / 10); 
+                xe.setRentalPricePerHour(pricePerDay / 10);
 
                 // Logic trạng thái
                 String status = rs.getString("status");
