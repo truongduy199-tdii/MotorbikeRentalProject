@@ -6,6 +6,7 @@ import bus.TaiKhoanBUS;
 import utils.SessionUser;
 import dto.TaiKhoanDTO;
 import gui.admin.AdminMainFrame;
+import gui.customer.CustomerMainFrame;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -147,13 +148,15 @@ public class LoginFrame extends JFrame {
                     "Thành công", JOptionPane.INFORMATION_MESSAGE);
 
             // Phân quyền chuyển trang
-            if (account.getRole().equals("ADMIN")) {
+            if (account.getRole() != null && account.getRole().equalsIgnoreCase("ADMIN")) {
                 AdminMainFrame adminFrame = new AdminMainFrame();
                 adminFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
                 adminFrame.setVisible(true);
             } else {
-                // new ThueXeGUI().setVisible(true); // Mở form Customer (Bỏ comment khi bạn đã tạo class này)
-                JOptionPane.showMessageDialog(this, "Chuyển đến giao diện Khách hàng (Đang phát triển)");
+                // Customer
+                CustomerMainFrame customerFrame = new CustomerMainFrame();
+                customerFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                customerFrame.setVisible(true);
             }
             this.dispose(); // Đóng form Login lại
         } else {

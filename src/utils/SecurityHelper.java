@@ -28,6 +28,6 @@ public class SecurityHelper {
     // Chạy file để lấy mã hash chuẩn
     public static void main(String[] args) {
         //System.out.println("Hash của '...': " + hashPassword("....."));
-        System.out.println("Hash của '...': " + hashPassword("123"));
+        System.out.println("Hash của '...': " + hashPassword("1234"));
     }
 }

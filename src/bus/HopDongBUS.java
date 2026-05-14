@@ -15,4 +15,6 @@ public class HopDongBUS {
     public ArrayList<HopDongDTO> layDanhSachHopDong() {
         return hopDongDAO.layDanhSachHopDong();
     }
+
+
 }
