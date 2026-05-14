@@ -35,4 +35,62 @@ public class XeMayDAO {
         }
         return ds;
     }
+
+    // Thêm vào trong class XeMayDAO
+    public boolean themXeMay(XeMayDTO xe) {
+        String sql = "INSERT INTO VEHICLES (vehicle_code, brand, model, license_plate, color, manufacture_year, rental_price_per_day, rental_price_per_hour, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = MySQLConnect.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, xe.getVehicleCode());
+            ps.setString(2, xe.getBrand());
+            ps.setString(3, xe.getModel());
+            ps.setString(4, xe.getLicensePlate());
+            ps.setString(5, xe.getColor());
+            ps.setInt(6, xe.getManufactureYear());
+            ps.setDouble(7, xe.getRentalPricePerDay());
+            ps.setDouble(8, xe.getRentalPricePerHour());
+            ps.setString(9, xe.getStatus());
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean suaXeMay(XeMayDTO xe) {
+        String sql = "UPDATE VEHICLES SET brand=?, model=?, license_plate=?, color=?, manufacture_year=?, rental_price_per_day=?, rental_price_per_hour=?, status=? WHERE vehicle_code=?";
+        try (Connection conn = MySQLConnect.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, xe.getBrand());
+            ps.setString(2, xe.getModel());
+            ps.setString(3, xe.getLicensePlate());
+            ps.setString(4, xe.getColor());
+            ps.setInt(5, xe.getManufactureYear());
+            ps.setDouble(6, xe.getRentalPricePerDay());
+            ps.setDouble(7, xe.getRentalPricePerHour());
+            ps.setString(8, xe.getStatus());
+            ps.setString(9, xe.getVehicleCode());
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean xoaXeMay(String vehicleCode) {
+        String sql = "DELETE FROM VEHICLES WHERE vehicle_code=?";
+        try (Connection conn = MySQLConnect.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, vehicleCode);
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

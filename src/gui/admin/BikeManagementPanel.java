@@ -23,6 +23,7 @@ public class BikeManagementPanel extends JPanel {
     private JTextArea txtDesc;
 
     private XeMayBUS xeMayBUS = new XeMayBUS();
+    private boolean isEditMode = false;
 
     public BikeManagementPanel() {
         setLayout(new BorderLayout(20, 20));
@@ -55,7 +56,7 @@ public class BikeManagementPanel extends JPanel {
         txtSearch = new JTextField();
         txtSearch.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Mã, tên hoặc biển số...");
 
-        String[] statusSearch = {"Tất cả trạng thái", "AVAILABLE", "RENTED", "MAINTENANCE", "INACTIVE"};
+        String[] statusSearch = {"Tất cả trạng thái", "AVAILABLE", "RENTED", "MAINTENANCE"};
         cbStatusFilter = new JComboBox<>(statusSearch);
 
         btnSearch = createActionButton("Tìm", new Color(25, 118, 210));
@@ -77,9 +78,17 @@ public class BikeManagementPanel extends JPanel {
         JButton btnRefresh = createActionButton("Làm mới", new Color(117, 117, 117));
 
         btnAdd.addActionListener(e -> {
+            isEditMode = false;
+            clearInputFields();
+            txtBikeCode.setEnabled(true); // Mã xe có thể nhập khi thêm mới
+            inputPanel.setBorder(BorderFactory.createTitledBorder("Thêm thông tin xe mới"));
             inputPanel.setVisible(true);
             revalidate();
         });
+
+        btnEdit.addActionListener(e -> handlePrepareEdit());
+
+        btnDelete.addActionListener(e -> handleDeleteBike());
 
         btnRefresh.addActionListener(e -> loadDataFromDB());
 
@@ -187,12 +196,6 @@ public class BikeManagementPanel extends JPanel {
         }
     }
 
-    private void handleAddBike() {
-        JOptionPane.showMessageDialog(this, "Đang thực hiện thêm xe: " + txtBikeName.getText());
-        inputPanel.setVisible(false);
-        loadDataFromDB();
-    }
-
     // --- Cập nhật addRowToTable: Đổ dữ liệu vào đúng các cột mới ---
     private void addRowToTable(XeMayDTO xe) {
         String priceDay = String.format("%,.0f VNĐ", xe.getRentalPricePerDay());
@@ -219,5 +222,125 @@ public class BikeManagementPanel extends JPanel {
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         return btn;
+    }
+
+    private void handleAddBike() {
+        try {
+            // 1. Lấy dữ liệu
+            String code = txtBikeCode.getText().trim();
+            String name = txtBikeName.getText().trim(); // Ví dụ: "Honda Airblade"
+            String plate = txtPlate.getText().trim();
+            String color = txtColor.getText().trim();
+            int year = Integer.parseInt(txtYear.getText().trim());
+            double priceDay = Double.parseDouble(txtPriceDay.getText().trim());
+            double priceHour = Double.parseDouble(txtPriceHour.getText().trim());
+            String status = cbStatusInput.getSelectedItem().toString();
+
+            // Validate cơ bản
+            if(code.isEmpty() || name.isEmpty() || plate.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ các trường bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Tách Hãng xe (Brand) và Dòng xe (Model) từ Tên xe
+            String brand = name.contains(" ") ? name.substring(0, name.indexOf(" ")) : name;
+            String model = name.contains(" ") ? name.substring(name.indexOf(" ") + 1) : "";
+
+            // 2. Gán vào DTO
+            XeMayDTO xe = new XeMayDTO();
+            xe.setVehicleCode(code);
+            xe.setBrand(brand);
+            xe.setModel(model);
+            xe.setLicensePlate(plate);
+            xe.setColor(color);
+            xe.setManufactureYear(year);
+            xe.setRentalPricePerDay(priceDay);
+            xe.setRentalPricePerHour(priceHour);
+            xe.setStatus(status);
+
+            // 3. Gọi BUS xử lý Thêm hoặc Sửa
+            if (!isEditMode) {
+                if (xeMayBUS.themXeMay(xe)) {
+                    JOptionPane.showMessageDialog(this, "Thêm xe thành công!");
+                    inputPanel.setVisible(false);
+                    loadDataFromDB();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Lỗi thêm xe! Có thể trùng mã.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                if (xeMayBUS.suaXeMay(xe)) {
+                    JOptionPane.showMessageDialog(this, "Cập nhật xe thành công!");
+                    inputPanel.setVisible(false);
+                    loadDataFromDB();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Năm sản xuất và Giá phải là số hợp lệ!", "Lỗi nhập liệu", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handlePrepareEdit() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một xe trong bảng để sửa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        isEditMode = true;
+        inputPanel.setBorder(BorderFactory.createTitledBorder("Sửa thông tin xe"));
+
+        // Đổ dữ liệu từ bảng lên các JTextField
+        txtBikeCode.setText(tableModel.getValueAt(selectedRow, 0).toString());
+        txtBikeCode.setEnabled(false); // Mã xe không được sửa
+
+        txtBikeName.setText(tableModel.getValueAt(selectedRow, 1).toString());
+        txtPlate.setText(tableModel.getValueAt(selectedRow, 2).toString());
+        txtColor.setText(tableModel.getValueAt(selectedRow, 3).toString());
+        txtYear.setText(tableModel.getValueAt(selectedRow, 4).toString());
+
+        // Xử lý chuỗi tiền tệ (Bỏ chữ " VNĐ" và dấu phẩy để lấy lại số thực)
+        String pDayStr = tableModel.getValueAt(selectedRow, 5).toString().replaceAll("[^\\d]", "");
+        String pHourStr = tableModel.getValueAt(selectedRow, 6).toString().replaceAll("[^\\d]", "");
+        txtPriceDay.setText(pDayStr);
+        txtPriceHour.setText(pHourStr);
+
+        cbStatusInput.setSelectedItem(tableModel.getValueAt(selectedRow, 7).toString());
+
+        inputPanel.setVisible(true);
+        revalidate();
+    }
+
+    private void handleDeleteBike() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một xe trong bảng để xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String vehicleCode = tableModel.getValueAt(selectedRow, 0).toString();
+        String vehicleName = tableModel.getValueAt(selectedRow, 1).toString();
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa xe: " + vehicleName + " (" + vehicleCode + ")?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            if (xeMayBUS.xoaXeMay(vehicleCode)) {
+                JOptionPane.showMessageDialog(this, "Xóa thành công!");
+                loadDataFromDB();
+            } else {
+                JOptionPane.showMessageDialog(this, "Xóa thất bại! Xe có thể đang được thuê (dính khóa ngoại).", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void clearInputFields() {
+        txtBikeCode.setText("");
+        txtBikeName.setText("");
+        txtPlate.setText("");
+        txtColor.setText("");
+        txtYear.setText("");
+        txtPriceDay.setText("");
+        txtPriceHour.setText("");
+        cbStatusInput.setSelectedIndex(0);
     }
 }

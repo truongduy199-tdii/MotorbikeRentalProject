@@ -11,6 +11,20 @@ public class XeMayBUS {
         this.xeMayDAO = new XeMayDAO();
     }
 
+    // Thêm vào trong class XeMayBUS
+    public boolean themXeMay(XeMayDTO xe) {
+        // Có thể thêm Validator kiểm tra rỗng ở đây
+        return xeMayDAO.themXeMay(xe);
+    }
+
+    public boolean suaXeMay(XeMayDTO xe) {
+        return xeMayDAO.suaXeMay(xe);
+    }
+
+    public boolean xoaXeMay(String vehicleCode) {
+        return xeMayDAO.xoaXeMay(vehicleCode);
+    }
+
     public ArrayList<XeMayDTO> layDanhSachXeMay() {
         return xeMayDAO.layDanhSachXeMay();
     }
