@@ -12,11 +12,10 @@ public class KhachHangDTO {
     private Date birthday;
     private String address;
     private String driverLicenseNumber;
-    private String status; // ĐÃ THÊM: Trạng thái (ACTIVE / BLOCKED)
+    private String status;
 
     public KhachHangDTO() {}
 
-    // ================= GETTERS VÀ SETTERS =================
     public int getCustomerId() { return customerId; }
     public void setCustomerId(int customerId) { this.customerId = customerId; }
 
@@ -44,7 +43,6 @@ public class KhachHangDTO {
     public String getDriverLicenseNumber() { return driverLicenseNumber; }
     public void setDriverLicenseNumber(String driverLicenseNumber) { this.driverLicenseNumber = driverLicenseNumber; }
 
-    // ĐÃ THÊM 2 HÀM NÀY ĐỂ TRỊ LỖI ĐỎ
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 }

@@ -4,20 +4,18 @@ import java.sql.Timestamp;
 
 public class HopDongDTO {
     private String contractCode;
-    private int customerId;  // Thêm ID khách hàng (dùng để thêm mới)
-    private int vehicleId;   // Thêm ID xe (dùng để thêm mới)
+    private int customerId;
+    private int vehicleId;
     private String customerName;
     private String vehicleName;
     private Timestamp rentalStart;
     private Timestamp rentalEnd;
     private double depositAmount;
     private double totalAmount;
-    private String rentalType; // 'DAY' hoặc 'HOUR'
+    private String rentalType;
     private String contractStatus;
 
     public HopDongDTO() {}
-
-    // ================= GETTERS VÀ SETTERS =================
 
     public String getContractCode() { return contractCode; }
     public void setContractCode(String contractCode) { this.contractCode = contractCode; }

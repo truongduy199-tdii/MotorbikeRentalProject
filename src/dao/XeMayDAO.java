@@ -7,11 +7,8 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 
 public class XeMayDAO {
-    // Thêm hàm này vào trong class XeMayDAO
     public ArrayList<XeMayDTO> timKiemXeMay(String keyword, String status) {
         ArrayList<XeMayDTO> list = new ArrayList<>();
-
-        // Sử dụng StringBuilder để linh hoạt nối chuỗi SQL tùy thuộc vào điều kiện tìm kiếm
         StringBuilder sql = new StringBuilder(
                 "SELECT v.vehicle_id, v.vehicle_code, v.brand, v.model, CONCAT(v.brand, ' ', v.model) AS vehicle_name, " +
                         "v.license_plate, v.color, v.manufacture_year, v.rental_price_per_day, v.status, " +
@@ -22,12 +19,10 @@ public class XeMayDAO {
                         "FROM VEHICLES v WHERE 1=1 "
         );
 
-        // Nối thêm điều kiện Keyword nếu người dùng có nhập
         if (keyword != null && !keyword.trim().isEmpty()) {
             sql.append(" AND (LOWER(v.vehicle_code) LIKE ? OR LOWER(CONCAT(v.brand, ' ', v.model)) LIKE ? OR LOWER(v.license_plate) LIKE ?) ");
         }
 
-        // Nối thêm điều kiện Trạng thái nếu người dùng chọn trạng thái cụ thể
         if (status != null && !status.equals("Tất cả trạng thái")) {
             sql.append(" AND v.status = ? ");
         }
@@ -39,12 +34,11 @@ public class XeMayDAO {
 
             int paramIndex = 1;
 
-            // Truyền giá trị cho các dấu ? trong câu SQL
             if (keyword != null && !keyword.trim().isEmpty()) {
                 String searchKey = "%" + keyword.trim().toLowerCase() + "%";
-                ps.setString(paramIndex++, searchKey); // Cho mã xe
-                ps.setString(paramIndex++, searchKey); // Cho tên xe
-                ps.setString(paramIndex++, searchKey); // Cho biển số
+                ps.setString(paramIndex++, searchKey);
+                ps.setString(paramIndex++, searchKey);
+                ps.setString(paramIndex++, searchKey);
             }
 
             if (status != null && !status.equals("Tất cả trạng thái")) {
@@ -75,7 +69,6 @@ public class XeMayDAO {
                 }
             }
         } catch (Exception e) {
-            // Ném lỗi lên trên để GUI bắt và hiển thị JOptionPane
             throw new RuntimeException("Lỗi truy vấn tìm kiếm cơ sở dữ liệu: " + e.getMessage(), e);
         }
         return list;
@@ -122,7 +115,6 @@ public class XeMayDAO {
                 list.add(xe);
             }
         } catch (Exception e) {
-            // THAY THẾ e.printStackTrace() bằng việc ném ngoại lệ
             throw new RuntimeException("Lỗi khi lấy danh sách xe máy từ CSDL: " + e.getMessage(), e);
         }
         return list;

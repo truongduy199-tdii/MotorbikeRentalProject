@@ -9,7 +9,6 @@ public class TaiKhoanDAO {
 
     public TaiKhoanDTO kiemTraDangNhap(String username, String passwordHash) {
         TaiKhoanDTO user = null;
-        // Bỏ điều kiện status = 'ACTIVE' ở đây để tầng BUS bắt lỗi tài khoản bị khóa chi tiết hơn
         String sql = "SELECT u.user_id, u.username, u.role, u.status, IFNULL(c.full_name, 'Administrator') AS full_name " +
                 "FROM USERS u " +
                 "LEFT JOIN CUSTOMERS c ON u.user_id = c.user_id " +
@@ -37,14 +36,13 @@ public class TaiKhoanDAO {
         return user;
     }
 
-    // THÊM HÀM MỚI: Kiểm tra trùng tên đăng nhập
     public boolean kiemTraTonTaiUsername(String username) {
         String sql = "SELECT 1 FROM USERS WHERE username = ?";
         try (Connection conn = MySQLConnect.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, username);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next(); // Trả về true nếu đã có người dùng tên này
+                return rs.next();
             }
         } catch (Exception e) {
             throw new RuntimeException("Lỗi CSDL khi kiểm tra username: " + e.getMessage(), e);

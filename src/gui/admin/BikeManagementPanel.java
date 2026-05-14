@@ -16,12 +16,9 @@ public class BikeManagementPanel extends JPanel {
     private JTextField txtSearch;
     private JComboBox<String> cbStatusFilter;
     private JButton btnSearch;
-
     private JPanel inputPanel;
-    // ĐÃ XÓA: txtPriceHour
     private JTextField txtBikeCode, txtBikeName, txtPlate, txtPriceDay, txtColor, txtYear;
     private JComboBox<String> cbStatusInput;
-
     private XeMayBUS xeMayBUS = new XeMayBUS();
     private boolean isEditMode = false;
 
@@ -42,7 +39,7 @@ public class BikeManagementPanel extends JPanel {
         JPanel topPanel = new JPanel(new GridLayout(1, 2, 20, 0));
         topPanel.setOpaque(false);
 
-        // Vùng bên trái: Tìm kiếm
+        // Vùng Tìm kiếm
         JPanel searchPanel = new JPanel(new GridBagLayout());
         searchPanel.setOpaque(false);
         GridBagConstraints gbcSearch = new GridBagConstraints();
@@ -66,7 +63,7 @@ public class BikeManagementPanel extends JPanel {
         gbcSearch.weightx = 0; gbcSearch.gridx = 2; searchPanel.add(cbStatusFilter, gbcSearch);
         gbcSearch.weightx = 0; gbcSearch.gridx = 3; searchPanel.add(btnSearch, gbcSearch);
 
-        // Vùng bên phải: Nút chức năng
+        // Vùng nút chức năng
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actionPanel.setOpaque(false);
 
@@ -98,7 +95,6 @@ public class BikeManagementPanel extends JPanel {
         topPanel.add(searchPanel);
         topPanel.add(actionPanel);
 
-        // --- Cập nhật TableModel: ĐÃ XÓA cột "Giá Thuê/Giờ" ---
         String[] columns = {"Mã xe", "Tên xe", "Biển số", "Màu", "Năm SX", "Giá Thuê/Ngày", "Trạng thái", "SĐT khách thuê"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -122,7 +118,6 @@ public class BikeManagementPanel extends JPanel {
 
         javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(javax.swing.JLabel.CENTER);
-        // Cập nhật lại chỉ số cột sau khi xóa
         table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
         table.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
         table.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
@@ -178,13 +173,13 @@ public class BikeManagementPanel extends JPanel {
         gbc.gridx = 2; inputPanel.add(new JLabel("Màu sắc:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtColor, gbc);
 
-        // Hàng 3: Đã sửa lại để Giá Thuê/Ngày và Năm sản xuất nằm cùng hàng cho cân đối
+        // Hàng 3
         gbc.gridx = 0; gbc.gridy = 2; inputPanel.add(new JLabel("Giá Thuê/Ngày:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtPriceDay, gbc);
         gbc.gridx = 2; gbc.gridy = 2; inputPanel.add(new JLabel("Năm sản xuất:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtYear, gbc);
 
-        // Hàng 4: Trạng thái và Nút bấm
+        // Hàng 4
         gbc.gridx = 0; gbc.gridy = 3; inputPanel.add(new JLabel("Trạng thái:"), gbc);
         gbc.gridx = 1; inputPanel.add(cbStatusInput, gbc);
 
@@ -205,40 +200,33 @@ public class BikeManagementPanel extends JPanel {
                 addRowToTable(xe);
             }
         } catch (RuntimeException ex) {
-            // Bắt lỗi nếu vừa mở ứng dụng lên mà chưa bật MySQL (XAMPP)
             JOptionPane.showMessageDialog(this, "Không thể kết nối đến cơ sở dữ liệu để tải danh sách xe.\nVui lòng kiểm tra lại kết nối mạng hoặc XAMPP.", "Lỗi khởi tạo", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void handleSearch() {
         try {
-            // Chỉ việc lấy từ khóa
             String keyword = txtSearch.getText().trim();
             String status = cbStatusFilter.getSelectedItem().toString();
 
-            // Đẩy xuống BUS và nhận về danh sách ĐÃ ĐƯỢC LỌC TỪ MYSQL
             ArrayList<XeMayDTO> listXe = xeMayBUS.timKiemXeMay(keyword, status);
 
-            tableModel.setRowCount(0); // Xóa bảng cũ
+            tableModel.setRowCount(0);
             for (XeMayDTO xe : listXe) {
                 addRowToTable(xe);
             }
 
-            // Tùy chọn: Báo cho người dùng nếu không tìm thấy xe nào
             if (listXe.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Không tìm thấy xe máy nào phù hợp với điều kiện tìm kiếm.", "Kết quả", JOptionPane.INFORMATION_MESSAGE);
             }
 
         } catch (RuntimeException ex) {
-            // Bắt lỗi nếu mất kết nối CSDL trong lúc tìm kiếm
             JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void addRowToTable(XeMayDTO xe) {
         String priceDay = String.format("%,.0f VNĐ", xe.getRentalPricePerDay());
-        // Đã xóa priceHour
-
         Object[] row = {
                 xe.getVehicleCode(),
                 xe.getVehicleName(),
@@ -264,7 +252,6 @@ public class BikeManagementPanel extends JPanel {
 
     private void handleAddBike() {
         try {
-            // 1. Thu thập dữ liệu từ các trường nhập liệu
             String code = txtBikeCode.getText().trim();
             String name = txtBikeName.getText().trim();
             String plate = txtPlate.getText().trim();
@@ -273,7 +260,6 @@ public class BikeManagementPanel extends JPanel {
             double priceDay = Double.parseDouble(txtPriceDay.getText().trim());
             String status = cbStatusInput.getSelectedItem().toString();
 
-            // Xử lý logic khóa trạng thái RENTED (Giữ nguyên vì liên quan đến thao tác chọn trên Table của GUI)
             if (isEditMode) {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow != -1) {
@@ -288,11 +274,9 @@ public class BikeManagementPanel extends JPanel {
                 }
             }
 
-            // Tách Brand và Model từ Tên xe
             String brand = name.contains(" ") ? name.substring(0, name.indexOf(" ")) : name;
             String model = name.contains(" ") ? name.substring(name.indexOf(" ") + 1) : "";
 
-            // 2. Gói dữ liệu vào DTO
             XeMayDTO xe = new XeMayDTO();
             xe.setVehicleCode(code);
             xe.setBrand(brand);
@@ -303,7 +287,6 @@ public class BikeManagementPanel extends JPanel {
             xe.setRentalPricePerDay(priceDay);
             xe.setStatus(status);
 
-            // 3. Gọi BUS xử lý. Các lỗi nghiệp vụ sẽ bị ném ra và nhảy thẳng xuống khối catch
             if (!isEditMode) {
                 if (xeMayBUS.themXeMay(xe)) {
                     JOptionPane.showMessageDialog(this, "Thêm xe thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -323,19 +306,15 @@ public class BikeManagementPanel extends JPanel {
             }
 
         } catch (NumberFormatException ex) {
-            // Bắt lỗi khi người dùng nhập chữ vào ô Năm sản xuất hoặc Giá thuê
             JOptionPane.showMessageDialog(this, "Năm sản xuất và Giá thuê phải là số hợp lệ!", "Lỗi định dạng", JOptionPane.WARNING_MESSAGE);
 
         } catch (IllegalArgumentException ex) {
-            // Bắt các lỗi nghiệp vụ từ XeMayBUS ném lên (VD: Giá <= 0, Mã rỗng, Năm < 2000...)
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Dữ liệu không hợp lệ", JOptionPane.WARNING_MESSAGE);
 
         } catch (RuntimeException ex) {
-            // Bắt các lỗi sâu hơn từ tầng DAO ném lên (VD: Lỗi kết nối CSDL MySQLConnect)
             JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
 
         } catch (Exception ex) {
-            // Bắt các lỗi không xác định khác để chương trình không bị crash
             JOptionPane.showMessageDialog(this, "Đã xảy ra lỗi không xác định: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -360,7 +339,6 @@ public class BikeManagementPanel extends JPanel {
 
         String pDayStr = tableModel.getValueAt(selectedRow, 5).toString().replaceAll("[^\\d]", "");
         txtPriceDay.setText(pDayStr);
-        // Đã xóa xử lý pHourStr
 
         cbStatusInput.setSelectedItem(tableModel.getValueAt(selectedRow, 6).toString());
 

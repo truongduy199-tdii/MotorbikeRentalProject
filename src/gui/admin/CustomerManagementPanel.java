@@ -20,12 +20,10 @@ public class CustomerManagementPanel extends JPanel {
     private DefaultTableModel tableModel;
     private KhachHangBUS khachHangBUS;
 
-    // Các component cho Top Panel (Tìm kiếm & Bộ lọc)
     private JTextField txtSearch;
     private JComboBox<String> cbStatusFilter;
     private JButton btnSearch;
 
-    // Các component cho Input Panel (Thêm/Sửa dữ liệu)
     private JPanel inputPanel;
     private JTextField txtCustomerId, txtFullName, txtPhone, txtEmail, txtCccd, txtBirthday, txtAddress, txtDriverLicense;
     private JComboBox<String> cbStatusInput;
@@ -44,16 +42,13 @@ public class CustomerManagementPanel extends JPanel {
     }
 
     private void initComponents() {
-        // 1. Tiêu đề
         JLabel lblTitle = new JLabel("QUẢN LÝ DANH MỤC KHÁCH HÀNG");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblTitle.setForeground(new Color(33, 43, 54));
 
-        // 2. TopPanel: GridLayout chia 2 bên (Tìm kiếm - Chức năng)
         JPanel topPanel = new JPanel(new GridLayout(1, 2, 20, 0));
         topPanel.setOpaque(false);
 
-        // -- 2.1 Bên trái: Vùng tìm kiếm
         JPanel searchPanel = new JPanel(new GridBagLayout());
         searchPanel.setOpaque(false);
         GridBagConstraints gbcSearch = new GridBagConstraints();
@@ -77,7 +72,6 @@ public class CustomerManagementPanel extends JPanel {
         gbcSearch.weightx = 0; gbcSearch.gridx = 2; searchPanel.add(cbStatusFilter, gbcSearch);
         gbcSearch.weightx = 0; gbcSearch.gridx = 3; searchPanel.add(btnSearch, gbcSearch);
 
-        // -- 2.2 Bên phải: Vùng nút chức năng
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actionPanel.setOpaque(false);
 
@@ -88,7 +82,6 @@ public class CustomerManagementPanel extends JPanel {
         btnEdit.addActionListener(e -> handlePrepareEdit());
         btnLock.addActionListener(e -> handleLockCustomer());
 
-        // Cập nhật tính năng nút Làm Mới
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");
             cbStatusFilter.setSelectedIndex(0);
@@ -104,7 +97,6 @@ public class CustomerManagementPanel extends JPanel {
         topPanel.add(searchPanel);
         topPanel.add(actionPanel);
 
-        // 3. Bảng dữ liệu Khách hàng
         String[] columnNames = {"Mã KH", "Họ Tên", "SĐT", "Email", "CCCD", "Ngày Sinh", "Địa Chỉ", "Bằng Lái", "Trạng Thái"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -145,10 +137,8 @@ public class CustomerManagementPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(tblCustomers);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
-        // 4. Khởi tạo InputPanel
         initInputPanel();
 
-        // 5. Gom Layout vào Center Container
         JPanel centerContainer = new JPanel(new BorderLayout(0, 20));
         centerContainer.setOpaque(false);
         centerContainer.add(topPanel, BorderLayout.NORTH);
@@ -170,7 +160,7 @@ public class CustomerManagementPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         txtCustomerId = new JTextField(10);
-        txtCustomerId.setEnabled(false); // Luôn luôn không cho sửa Mã KH
+        txtCustomerId.setEnabled(false);
         txtFullName = new JTextField(15);
         txtPhone = new JTextField(10);
         txtEmail = new JTextField(15);

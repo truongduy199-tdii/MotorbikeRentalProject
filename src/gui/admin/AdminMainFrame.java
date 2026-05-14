@@ -45,7 +45,7 @@ public class AdminMainFrame extends JFrame {
         lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblTitle.setBorder(new EmptyBorder(0, 0, 30, 0));
 
-        // Menu (Đã bổ sung Thống Kê và đánh lại số thứ tự)
+        // Menu
         JButton btnDashboard = createMenuButton("1. Thống kê");
         JButton btnBike = createMenuButton("2. Quản lý Xe");
         JButton btnCustomer = createMenuButton("3. Quản lý Khách hàng");
@@ -56,7 +56,7 @@ public class AdminMainFrame extends JFrame {
         // Thêm vào Sidebar
         sidebarPanel.add(lblTitle);
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebarPanel.add(btnDashboard); // Thêm Thống kê vào Menu
+        sidebarPanel.add(btnDashboard);
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         sidebarPanel.add(btnBike);
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -71,13 +71,12 @@ public class AdminMainFrame extends JFrame {
         mainContentPanel = new JPanel(cardLayout);
         mainContentPanel.setBackground(new Color(245, 247, 250));
 
-        // Khởi tạo các Panel con (Bổ sung StatisticPanel)
+        // Khởi tạo các Panel con
         StatisticPanel statisticPanel = new StatisticPanel();
         BikeManagementPanel bikeManagementPanel = new BikeManagementPanel();
         CustomerManagementPanel customerManagementPanel = new CustomerManagementPanel();
         ContractManagementPanel contractPanel = new ContractManagementPanel();
 
-        // Add vào CardLayout với tên định danh
         mainContentPanel.add(statisticPanel, "Dashboard"); // Add Dashboard vào đầu tiên
         mainContentPanel.add(bikeManagementPanel, "Bike");
         mainContentPanel.add(customerManagementPanel, "Customer");
@@ -89,7 +88,7 @@ public class AdminMainFrame extends JFrame {
         btnBike.addActionListener(e -> cardLayout.show(mainContentPanel, "Bike"));
 
         btnCustomer.addActionListener(e -> {
-            customerManagementPanel.loadDataFromDB(); // Kích hoạt tải lại dữ liệu mới nhất
+            customerManagementPanel.loadDataFromDB();
             cardLayout.show(mainContentPanel, "Customer");
         });
 
@@ -113,7 +112,6 @@ public class AdminMainFrame extends JFrame {
         add(sidebarPanel, BorderLayout.WEST);
         add(mainContentPanel, BorderLayout.CENTER);
 
-        // Hiển thị Dashboard làm màn hình mặc định khi vừa mở form
         cardLayout.show(mainContentPanel, "Dashboard");
     }
 

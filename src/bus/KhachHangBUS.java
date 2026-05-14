@@ -11,7 +11,6 @@ public class KhachHangBUS {
         this.khachHangDAO = new KhachHangDAO();
     }
 
-    // Dành cho Admin
     public ArrayList<KhachHangDTO> getAllCustomers() {
         return khachHangDAO.getAllCustomers();
     }
@@ -20,7 +19,6 @@ public class KhachHangBUS {
         return khachHangDAO.timKiemKhachHang(keyword, status);
     }
 
-    // Hàm Validation
     private void kiemTraDuLieu(KhachHangDTO kh) throws IllegalArgumentException {
         if (kh.getFullName() == null || kh.getFullName().trim().isEmpty()) {
             throw new IllegalArgumentException("Họ tên không được để trống.");
@@ -51,12 +49,10 @@ public class KhachHangBUS {
         return khachHangDAO.xoaKhachHang(customerId);
     }
 
-    // Dành cho Customer
     public KhachHangDTO layThongTinTheoUserId(int userId) {
         return khachHangDAO.layThongTinTheoUserId(userId);
     }
 
-    // Dành cho Customer
     public boolean capNhatThongTin(KhachHangDTO kh) {
         // Bắt lỗi nghiệp vụ
         if (kh.getPhone() == null || kh.getPhone().trim().isEmpty()) {

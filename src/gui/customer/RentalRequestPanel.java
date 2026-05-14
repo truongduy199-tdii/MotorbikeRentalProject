@@ -46,7 +46,7 @@ public class RentalRequestPanel extends JPanel {
         formPanel.add(new JLabel(String.format("%,.0f VNĐ/Ngày", bike.getRentalPricePerDay())));
 
         formPanel.add(new JLabel("Tiền cọc bắt buộc:"));
-        formPanel.add(new JLabel("1,000,000 VNĐ")); // Cập nhật đúng 1 triệu
+        formPanel.add(new JLabel("1,000,000 VNĐ"));
 
         add(formPanel, BorderLayout.CENTER);
 
@@ -72,14 +72,12 @@ public class RentalRequestPanel extends JPanel {
             Timestamp start = Timestamp.valueOf(txtStart.getText().trim());
             Timestamp end = Timestamp.valueOf(txtEnd.getText().trim());
 
-            // Tự tính số ngày thuê thực tế
             long diffMillis = end.getTime() - start.getTime();
             if (diffMillis <= 0) {
                 JOptionPane.showMessageDialog(this, "Ngày trả xe phải lớn hơn ngày mượn xe!", "Lỗi logic", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Tính số ngày (Làm tròn lên, ví dụ thuê 1.5 ngày tính 2 ngày)
             int days = (int) Math.ceil((double) diffMillis / (1000 * 60 * 60 * 24));
             double deposit = 1000000.0;
             double totalAmount = deposit + (days * bike.getRentalPricePerDay());
@@ -101,10 +99,8 @@ public class RentalRequestPanel extends JPanel {
             }
 
         } catch (IllegalArgumentException ex) {
-            // Lỗi do người dùng gõ sai định dạng thời gian
             JOptionPane.showMessageDialog(this, "Định dạng ngày không hợp lệ!\nVui lòng nhập đúng: yyyy-mm-dd hh:mm:ss\n(Ví dụ: 2026-05-20 14:30:00)", "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
         } catch (RuntimeException ex) {
-            // Lỗi kết nối CSDL
             JOptionPane.showMessageDialog(this, "Lỗi hệ thống CSDL: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }

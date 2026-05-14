@@ -45,7 +45,6 @@ public class TaiKhoanBUS {
             throw new IllegalArgumentException("Mật khẩu nhập lại không khớp!");
         }
 
-        // Chặn ngay từ BUS nếu trùng tên đăng nhập
         if (taiKhoanDAO.kiemTraTonTaiUsername(tk.getUsername())) {
             throw new IllegalArgumentException("Tên đăng nhập '" + tk.getUsername() + "' đã tồn tại! Vui lòng chọn tên khác.");
         }

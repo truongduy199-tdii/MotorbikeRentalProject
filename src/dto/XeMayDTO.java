@@ -5,10 +5,7 @@ public class XeMayDTO {
     private String vehicleCode;
     private String brand;
     private String model;
-
-    // Đã thêm biến vehicleName để lưu trữ tên xe nếu cần
     private String vehicleName;
-
     private String licensePlate;
     private String color;
     private int manufactureYear;
@@ -19,8 +16,6 @@ public class XeMayDTO {
     private String renterPhone;
 
     public XeMayDTO() {}
-
-    // ================= GETTERS VÀ SETTERS =================
 
     public int getVehicleId() { return vehicleId; }
     public void setVehicleId(int vehicleId) { this.vehicleId = vehicleId; }
@@ -34,12 +29,10 @@ public class XeMayDTO {
     public String getModel() { return model; }
     public void setModel(String model) { this.model = model; }
 
-    // Đã thêm hàm SET cho vehicleName để trị dứt điểm lỗi đỏ
     public void setVehicleName(String vehicleName) {
         this.vehicleName = vehicleName;
     }
 
-    // Hàm GET thông minh: Nếu đã set tên thì lấy tên, nếu chưa thì tự ghép Hãng + Tên
     public String getVehicleName() {
         if (this.vehicleName != null && !this.vehicleName.isEmpty()) {
             return this.vehicleName;

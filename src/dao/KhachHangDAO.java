@@ -8,10 +8,8 @@ import java.util.ArrayList;
 
 public class KhachHangDAO {
 
-    // --- HÀM CHO ADMIN ---
     public ArrayList<KhachHangDTO> getAllCustomers() {
         ArrayList<KhachHangDTO> list = new ArrayList<>();
-        // Đã sửa lỗi ORDER BY created_at (Cột không tồn tại) -> Thành customer_id
         String sql = "SELECT * FROM CUSTOMERS ORDER BY customer_id ";
         try (Connection conn = MySQLConnect.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -26,7 +24,6 @@ public class KhachHangDAO {
         return list;
     }
 
-    // 1. Hàm TÌM KIẾM bằng SQL (Chuẩn 3 lớp)
     public ArrayList<KhachHangDTO> timKiemKhachHang(String keyword, String status) {
         ArrayList<KhachHangDTO> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM CUSTOMERS WHERE 1=1 ");
@@ -64,7 +61,6 @@ public class KhachHangDAO {
         return list;
     }
 
-    // 2. Hàm SỬA Khách hàng (Admin)
     public boolean suaKhachHang(KhachHangDTO kh) {
         String sql = "UPDATE CUSTOMERS SET full_name=?, phone=?, email=?, cccd=?, birthday=?, address=?, driver_license_number=?, status=? WHERE customer_id=?";
         try (Connection conn = MySQLConnect.getConnection();
@@ -84,7 +80,6 @@ public class KhachHangDAO {
         }
     }
 
-    // 3. Hàm XÓA Khách hàng (Thực tế là khóa tài khoản - Đổi status thành BLOCKED/INACTIVE)
     public boolean xoaKhachHang(int customerId) {
         String sql = "UPDATE CUSTOMERS SET status = 'BLOCKED' WHERE customer_id = ?";
         try (Connection conn = MySQLConnect.getConnection();
@@ -123,7 +118,6 @@ public class KhachHangDAO {
         }
     }
 
-    // --- HÀM CHO CUSTOMER ---
     public KhachHangDTO layThongTinTheoUserId(int userId) {
         String sql = "SELECT * FROM CUSTOMERS WHERE user_id = ?";
         try (Connection conn = MySQLConnect.getConnection();
@@ -140,7 +134,6 @@ public class KhachHangDAO {
         return null;
     }
 
-    // Hàm tiện ích để Map dữ liệu tránh lặp code
     private KhachHangDTO mapResultSetToDTO(ResultSet rs) throws Exception {
         KhachHangDTO kh = new KhachHangDTO();
         kh.setCustomerId(rs.getInt("customer_id"));
