@@ -2,6 +2,7 @@ package gui.customer;
 
 import bus.HopDongBUS;
 import dto.HopDongDTO;
+import dto.TaiKhoanDTO;
 import utils.SessionUser;
 
 import javax.swing.*;
@@ -34,7 +35,7 @@ public class RentalHistoryPanel extends JPanel {
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         add(lblTitle, BorderLayout.NORTH);
 
-        String[] columns = {"Mã HĐ", "Tên Xe", "Ngày bắt đầu", "Ngày kết thúc", "Tiền cọc/Tổng", "Trạng thái"};
+        String[] columns = {"Mã HĐ", "Tên Xe", "Ngày bắt đầu", "Ngày kết thúc", "Tổng Tiền", "Trạng thái"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -51,28 +52,24 @@ public class RentalHistoryPanel extends JPanel {
     public void loadData() {
         tableModel.setRowCount(0);
 
-        // Lấy tất cả hợp đồng
-        ArrayList<HopDongDTO> allContracts = hopDongBUS.layDanhSachHopDong();
+        TaiKhoanDTO currentUser = SessionUser.getCurrentUser();
+        if (currentUser == null) return;
 
-        // Lấy tên/username khách đang đăng nhập để lọc
-        String currentUser = SessionUser.getCurrentUser() != null ? SessionUser.getCurrentUser().getUsername() : "";
+        // Gọi trực tiếp hàm lấy hợp đồng theo User ID (Đảm bảo chính xác 100%)
+        ArrayList<HopDongDTO> userContracts = hopDongBUS.layHopDongTheoUser(currentUser.getUserId());
 
-        for (HopDongDTO hd : allContracts) {
-            // Lọc: Chỉ hiển thị những hợp đồng thuộc về user đang đăng nhập
-            if (hd.getCustomerName() != null && hd.getCustomerName().equalsIgnoreCase(currentUser)) {
+        for (HopDongDTO hd : userContracts) {
+            String startStr = hd.getRentalStart() != null ? dateFormat.format(hd.getRentalStart()) : "N/A";
+            String endStr = hd.getRentalEnd() != null ? dateFormat.format(hd.getRentalEnd()) : "N/A";
 
-                String startStr = hd.getRentalStart() != null ? dateFormat.format(hd.getRentalStart()) : "N/A";
-                String endStr = hd.getRentalEnd() != null ? dateFormat.format(hd.getRentalEnd()) : "N/A";
-
-                tableModel.addRow(new Object[]{
-                        hd.getContractCode(),
-                        hd.getVehicleName(),
-                        startStr,
-                        endStr,
-                        String.format("%,.0f VNĐ", hd.getDepositAmount()),
-                        hd.getContractStatus()
-                });
-            }
+            tableModel.addRow(new Object[]{
+                    hd.getContractCode(),
+                    hd.getVehicleName(),
+                    startStr,
+                    endStr,
+                    String.format("%,.0f VNĐ", hd.getTotalAmount()),
+                    hd.getContractStatus()
+            });
         }
     }
 }

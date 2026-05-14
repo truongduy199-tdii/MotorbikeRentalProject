@@ -5,6 +5,10 @@ public class XeMayDTO {
     private String vehicleCode;
     private String brand;
     private String model;
+
+    // Đã thêm biến vehicleName để lưu trữ tên xe nếu cần
+    private String vehicleName;
+
     private String licensePlate;
     private String color;
     private int manufactureYear;
@@ -16,7 +20,8 @@ public class XeMayDTO {
 
     public XeMayDTO() {}
 
-    // Getter và Setter
+    // ================= GETTERS VÀ SETTERS =================
+
     public int getVehicleId() { return vehicleId; }
     public void setVehicleId(int vehicleId) { this.vehicleId = vehicleId; }
 
@@ -29,8 +34,21 @@ public class XeMayDTO {
     public String getModel() { return model; }
     public void setModel(String model) { this.model = model; }
 
-    // Hàm tiện ích để lấy tên xe đầy đủ
-    public String getVehicleName() { return brand + " " + model; }
+    // Đã thêm hàm SET cho vehicleName để trị dứt điểm lỗi đỏ
+    public void setVehicleName(String vehicleName) {
+        this.vehicleName = vehicleName;
+    }
+
+    // Hàm GET thông minh: Nếu đã set tên thì lấy tên, nếu chưa thì tự ghép Hãng + Tên
+    public String getVehicleName() {
+        if (this.vehicleName != null && !this.vehicleName.isEmpty()) {
+            return this.vehicleName;
+        }
+        if (brand != null && model != null) {
+            return brand + " " + model;
+        }
+        return "";
+    }
 
     public String getLicensePlate() { return licensePlate; }
     public void setLicensePlate(String licensePlate) { this.licensePlate = licensePlate; }
@@ -53,6 +71,8 @@ public class XeMayDTO {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public String getRenterPhone() { return (renterPhone == null || renterPhone.isEmpty()) ? "---" : renterPhone; }
+    public String getRenterPhone() {
+        return (renterPhone == null || renterPhone.isEmpty()) ? "---" : renterPhone;
+    }
     public void setRenterPhone(String renterPhone) { this.renterPhone = renterPhone; }
 }

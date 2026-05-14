@@ -341,7 +341,7 @@ public class CustomerManagementPanel extends JPanel {
             kh.setAddress(address);
             kh.setDriverLicenseNumber(driverLicense);
             kh.setStatus(status);
-            kh.setBirthday(birthday);
+            kh.setBirthday(new java.sql.Date(birthday.getTime()));
 
             // Giả lập lưu
             JOptionPane.showMessageDialog(this, isEditMode ? "Giả lập sửa thành công!" : "Giả lập thêm thành công!");

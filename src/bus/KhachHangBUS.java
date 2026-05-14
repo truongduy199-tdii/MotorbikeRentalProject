@@ -2,18 +2,30 @@ package bus;
 
 import dao.KhachHangDAO;
 import dto.KhachHangDTO;
-import java.util.List;
 import java.util.ArrayList;
 
 public class KhachHangBUS {
     private KhachHangDAO khachHangDAO;
 
     public KhachHangBUS() {
-        // Rất nhiều bạn quên dòng này dẫn đến lỗi NullPointerException
-        khachHangDAO = new KhachHangDAO();
+        this.khachHangDAO = new KhachHangDAO();
     }
 
-    public List<KhachHangDTO> getAllCustomers() {
+    // Dành cho Admin
+    public ArrayList<KhachHangDTO> getAllCustomers() {
         return khachHangDAO.getAllCustomers();
+    }
+
+    // Dành cho Customer
+    public KhachHangDTO layThongTinTheoUserId(int userId) {
+        return khachHangDAO.layThongTinTheoUserId(userId);
+    }
+
+    public boolean capNhatThongTin(KhachHangDTO kh) {
+        return khachHangDAO.capNhatThongTin(kh);
+    }
+
+    public boolean doiMatKhau(int userId, String oldPassHash, String newPassHash) {
+        return khachHangDAO.doiMatKhau(userId, oldPassHash, newPassHash);
     }
 }

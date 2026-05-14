@@ -1,6 +1,5 @@
 package gui.customer;
 
-import com.formdev.flatlaf.FlatClientProperties;
 import dto.XeMayDTO;
 import gui.common.LoginFrame;
 import utils.SessionUser;
@@ -10,140 +9,189 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
 public class CustomerMainFrame extends JFrame {
 
-    private JPanel sidebarPanel;
     private JPanel mainContentPanel;
     private CardLayout cardLayout;
-
-    private BikeBrowsingPanel bikeBrowsingPanel;
-    private RentalRequestPanel rentalRequestPanel;
-    private RentalHistoryPanel rentalHistoryPanel;
-
-    // Màu sắc chủ đạo (Giữ nguyên style của Admin)
-    private final Color SIDEBAR_BG = new Color(33, 43, 54);
-    private final Color SIDEBAR_HOVER = new Color(43, 55, 70);
-    private final Color TEXT_COLOR = Color.WHITE;
+    private ArrayList<JButton> menuButtons = new ArrayList<>();
 
     public CustomerMainFrame() {
         setTitle("Khách Hàng - Hệ Thống Thuê Xe Máy");
-        setSize(1200, 700);
+        setSize(1150, 750);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        initComponents();
-    }
+        // ==========================================
+        // 1. SIDEBAR (MENU BÊN TRÁI) - CHUẨN ADMIN UI
+        // ==========================================
+        JPanel sidebarPanel = new JPanel(new BorderLayout());
+        sidebarPanel.setBackground(new Color(44, 53, 63)); // Màu xanh đen đậm giống Admin
+        sidebarPanel.setPreferredSize(new Dimension(240, 0));
 
-    private void initComponents() {
-        // 1. SIDEBAR
-        sidebarPanel = new JPanel();
-        sidebarPanel.setPreferredSize(new Dimension(250, 0));
-        sidebarPanel.setBackground(SIDEBAR_BG);
-        sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
-        sidebarPanel.setBorder(new EmptyBorder(20, 10, 20, 10));
+        // --- Phần Header của Sidebar ---
+        JPanel headerPanel = new JPanel(new GridLayout(3, 1));
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(new EmptyBorder(20, 0, 20, 0));
 
-        // Tên Khách hàng đang đăng nhập
-        String userName = "Khách Hàng";
-        if (SessionUser.getCurrentUser() != null) {
-            // Giả sử TaiKhoanDTO có hàm getUsername(), bạn có thể đổi thành tên thực tế
-            userName = SessionUser.getCurrentUser().getUsername();
-        }
+        JLabel lblRole = new JLabel("CUSTOMER", SwingConstants.CENTER);
+        lblRole.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblRole.setForeground(Color.WHITE);
 
-        JLabel lblTitle = new JLabel("Xin chào, " + userName);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        lblTitle.setForeground(TEXT_COLOR);
-        lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblTitle.setBorder(new EmptyBorder(0, 0, 30, 0));
+        JLabel lblWelcome = new JLabel("Xin chào,", SwingConstants.CENTER);
+        lblWelcome.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblWelcome.setForeground(new Color(200, 200, 200));
 
-        // Menu
-        JButton btnBrowse = createMenuButton("1. Xem danh sách xe");
-        JButton btnHistory = createMenuButton("2. Lịch sử thuê xe");
-        JButton btnLogout = createMenuButton("Đăng xuất");
-        btnLogout.setForeground(new Color(255, 82, 82));
+        JLabel lblName = new JLabel(SessionUser.getCurrentUser().getFullName(), SwingConstants.CENTER);
+        lblName.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblName.setForeground(new Color(52, 152, 219)); // Tên user màu xanh nổi bật
 
-        // Thêm vào Sidebar
-        sidebarPanel.add(lblTitle);
-        sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebarPanel.add(btnBrowse);
-        sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebarPanel.add(btnHistory);
-        sidebarPanel.add(Box.createVerticalGlue());
-        sidebarPanel.add(btnLogout);
+        headerPanel.add(lblRole);
+        headerPanel.add(lblWelcome);
+        headerPanel.add(lblName);
+        sidebarPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // 2. MAIN CONTENT (CardLayout)
-        cardLayout = new CardLayout();
-        mainContentPanel = new JPanel(cardLayout);
-        mainContentPanel.setBackground(new Color(245, 247, 250));
+        // --- Phần Các nút Menu (Center) ---
+        JPanel menuItemsPanel = new JPanel();
+        menuItemsPanel.setLayout(new BoxLayout(menuItemsPanel, BoxLayout.Y_AXIS));
+        menuItemsPanel.setOpaque(false);
+        menuItemsPanel.setBorder(new EmptyBorder(20, 15, 0, 15));
 
-        // Khởi tạo các Panel con (Truyền instance của Frame này vào để có thể chuyển trang)
-        bikeBrowsingPanel = new BikeBrowsingPanel(this);
-        rentalRequestPanel = new RentalRequestPanel(this);
-        rentalHistoryPanel = new RentalHistoryPanel();
+        JButton btnBikes = createMenuButton("1. Danh sách Xe");
+        JButton btnHistory = createMenuButton("2. Lịch sử Thuê");
+        JButton btnProfile = createMenuButton("3. Hồ sơ Cá nhân");
 
-        // Add vào CardLayout
-        mainContentPanel.add(bikeBrowsingPanel, "Browse");
-        mainContentPanel.add(rentalRequestPanel, "Request");
-        mainContentPanel.add(rentalHistoryPanel, "History");
+        menuItemsPanel.add(btnBikes);
+        menuItemsPanel.add(Box.createRigidArea(new Dimension(0, 15))); // Khoảng cách giữa các nút
+        menuItemsPanel.add(btnHistory);
+        menuItemsPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        menuItemsPanel.add(btnProfile);
 
-        // ACTION CHO MENU
-        btnBrowse.addActionListener(e -> {
-            bikeBrowsingPanel.loadData();
-            cardLayout.show(mainContentPanel, "Browse");
+        sidebarPanel.add(menuItemsPanel, BorderLayout.CENTER);
+
+        // --- Phần Nút Đăng xuất (Góc dưới cùng) ---
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setOpaque(false);
+        bottomPanel.setBorder(new EmptyBorder(0, 15, 20, 0));
+
+        JButton btnLogout = new JButton("Đăng xuất");
+        btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        btnLogout.setForeground(new Color(231, 76, 60)); // Màu đỏ chuẩn UI Admin
+        btnLogout.setBackground(new Color(44, 53, 63));
+        btnLogout.setBorderPainted(false);
+        btnLogout.setFocusPainted(false);
+        btnLogout.setContentAreaFilled(false);
+        btnLogout.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnLogout.setHorizontalAlignment(SwingConstants.LEFT);
+
+        // Hiệu ứng di chuột cho nút đăng xuất
+        btnLogout.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { btnLogout.setForeground(new Color(255, 100, 100)); }
+            public void mouseExited(MouseEvent e) { btnLogout.setForeground(new Color(231, 76, 60)); }
         });
+        btnLogout.addActionListener(e -> handleLogout());
 
-        btnHistory.addActionListener(e -> {
-            rentalHistoryPanel.loadData();
-            cardLayout.show(mainContentPanel, "History");
-        });
-
-        btnLogout.addActionListener(e -> {
-            int confirm = JOptionPane.showConfirmDialog(
-                    this, "Bạn có chắc chắn muốn đăng xuất?", "Xác nhận", JOptionPane.YES_NO_OPTION
-            );
-            if (confirm == JOptionPane.YES_OPTION) {
-                SessionUser.logout();
-                this.dispose();
-                new LoginFrame().setVisible(true);
-            }
-        });
+        bottomPanel.add(btnLogout, BorderLayout.WEST);
+        sidebarPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         add(sidebarPanel, BorderLayout.WEST);
+
+        // ==========================================
+        // 2. MAIN CONTENT (NỘI DUNG CHÍNH)
+        // ==========================================
+        cardLayout = new CardLayout();
+        mainContentPanel = new JPanel(cardLayout);
+
+        mainContentPanel.add(new BikeBrowsingPanel(this), "BIKE_BROWSING");
+        mainContentPanel.add(new RentalHistoryPanel(), "RENTAL_HISTORY");
+        mainContentPanel.add(new CustomerProfilePanel(), "CUSTOMER_PROFILE");
+
         add(mainContentPanel, BorderLayout.CENTER);
+
+        // ==========================================
+        // 3. SỰ KIỆN CHUYỂN TRANG
+        // ==========================================
+        btnBikes.addActionListener(e -> { showCard("BIKE_BROWSING"); setActiveButton(btnBikes); });
+        btnHistory.addActionListener(e -> {
+            mainContentPanel.add(new RentalHistoryPanel(), "RENTAL_HISTORY_REFRESH");
+            showCard("RENTAL_HISTORY_REFRESH");
+            setActiveButton(btnHistory);
+        });
+        btnProfile.addActionListener(e -> {
+            mainContentPanel.add(new CustomerProfilePanel(), "PROFILE_REFRESH");
+            showCard("PROFILE_REFRESH");
+            setActiveButton(btnProfile);
+        });
+
+        // Chọn mặc định trang đầu tiên
+        setActiveButton(btnBikes);
     }
 
-    // Hàm public để BikeBrowsingPanel có thể gọi khi khách click "Thuê xe"
-    public void showRentalRequest(XeMayDTO selectedBike) {
-        rentalRequestPanel.setVehicleData(selectedBike);
-        cardLayout.show(mainContentPanel, "Request");
-    }
-
-    // Hàm public để quay về lịch sử sau khi thuê thành công
-    public void showHistory() {
-        rentalHistoryPanel.loadData();
-        cardLayout.show(mainContentPanel, "History");
-    }
-
+    // Hàm tạo nút Menu chuẩn Admin UI
     private JButton createMenuButton(String text) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btn.setForeground(TEXT_COLOR);
-        btn.setBackground(SIDEBAR_BG);
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(new Color(44, 53, 63));
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
-        btn.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btn.setMaximumSize(new Dimension(230, 45));
+        btn.setContentAreaFilled(false); // Xóa nền mặc định
+        btn.setOpaque(true); // Cho phép tô màu nền thủ công
         btn.setHorizontalAlignment(SwingConstants.LEFT);
+        btn.setMaximumSize(new Dimension(200, 40));
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.putClientProperty(FlatClientProperties.STYLE, "arc: 10");
 
+        // Hover Effect
         btn.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseEntered(MouseEvent e) { btn.setBackground(SIDEBAR_HOVER); }
+            public void mouseEntered(MouseEvent e) {
+                if (!btn.getForeground().equals(new Color(52, 152, 219))) {
+                    btn.setBackground(new Color(55, 65, 75)); // Sáng lên nhẹ khi đưa chuột qua
+                }
+            }
             @Override
-            public void mouseExited(MouseEvent e) { btn.setBackground(SIDEBAR_BG); }
+            public void mouseExited(MouseEvent e) {
+                if (!btn.getForeground().equals(new Color(52, 152, 219))) {
+                    btn.setBackground(new Color(44, 53, 63)); // Trả về màu cũ
+                }
+            }
         });
+
+        menuButtons.add(btn);
         return btn;
+    }
+
+    // Hàm set Active: Đổi màu chữ thay vì màu nền (Giống Admin)
+    private void setActiveButton(JButton activeButton) {
+        for (JButton btn : menuButtons) {
+            btn.setBackground(new Color(44, 53, 63));
+            btn.setForeground(Color.WHITE);
+        }
+        activeButton.setBackground(new Color(44, 53, 63));
+        activeButton.setForeground(new Color(52, 152, 219)); // Chữ màu xanh dương khi đang chọn
+    }
+
+    public void showCard(String cardName) {
+        cardLayout.show(mainContentPanel, cardName);
+    }
+
+    public void showRentalRequest(XeMayDTO selectedBike) {
+        mainContentPanel.add(new RentalRequestPanel(this, selectedBike), "RENTAL_REQUEST");
+        showCard("RENTAL_REQUEST");
+        // Bỏ chọn menu khi vào form đặt xe
+        for (JButton btn : menuButtons) {
+            btn.setForeground(Color.WHITE);
+            btn.setBackground(new Color(44, 53, 63));
+        }
+    }
+
+    private void handleLogout() {
+        if (JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn đăng xuất?", "Xác nhận", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            SessionUser.logout();
+            dispose();
+            new LoginFrame().setVisible(true);
+        }
     }
 }
