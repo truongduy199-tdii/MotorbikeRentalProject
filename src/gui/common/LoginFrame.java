@@ -144,8 +144,8 @@ public class LoginFrame extends JFrame {
             // Lưu thông tin người dùng vào Session để dùng cho các tính năng sau
             SessionUser.setCurrentUser(account);
 
-            JOptionPane.showMessageDialog(this, "Đăng nhập thành công! Xin chào " + account.getFullName(),
-                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            /*JOptionPane.showMessageDialog(this, "Đăng nhập thành công! Xin chào " + account.getFullName(),
+                    "Thành công", JOptionPane.INFORMATION_MESSAGE);*/
 
             // Phân quyền chuyển trang
             if (account.getRole() != null && account.getRole().equalsIgnoreCase("ADMIN")) {

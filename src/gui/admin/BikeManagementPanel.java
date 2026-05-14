@@ -72,7 +72,7 @@ public class BikeManagementPanel extends JPanel {
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actionPanel.setOpaque(false);
 
-        JButton btnAdd = createActionButton("Thêm mới", new Color(46, 125, 50));
+        JButton btnAdd = createActionButton("Thêm xe", new Color(46, 125, 50));
         JButton btnEdit = createActionButton("Sửa", new Color(237, 108, 2));
         JButton btnDelete = createActionButton("Xóa", new Color(211, 47, 47));
         JButton btnRefresh = createActionButton("Làm mới", new Color(117, 117, 117));
@@ -80,7 +80,7 @@ public class BikeManagementPanel extends JPanel {
         btnAdd.addActionListener(e -> {
             isEditMode = false;
             clearInputFields();
-            txtBikeCode.setEnabled(true); // Mã xe có thể nhập khi thêm mới
+            txtBikeCode.setEnabled(true);
             inputPanel.setBorder(BorderFactory.createTitledBorder("Thêm thông tin xe mới"));
             inputPanel.setVisible(true);
             revalidate();
@@ -90,7 +90,11 @@ public class BikeManagementPanel extends JPanel {
 
         btnDelete.addActionListener(e -> handleDeleteBike());
 
-        btnRefresh.addActionListener(e -> loadDataFromDB());
+        btnRefresh.addActionListener(e -> {
+            txtSearch.setText("");              // Làm sạch thanh tìm kiếm
+            cbStatusFilter.setSelectedIndex(0); // Đưa ComboBox trạng thái về "Tất cả trạng thái"
+            loadDataFromDB();                   // Tải lại dữ liệu từ Database
+        });
 
         actionPanel.add(btnAdd);
         actionPanel.add(btnEdit);
@@ -101,14 +105,44 @@ public class BikeManagementPanel extends JPanel {
         topPanel.add(actionPanel);
 
         // --- Cập nhật TableModel: Thêm đầy đủ các cột theo yêu cầu ---
-        String[] columns = {"Mã xe", "Tên xe", "Biển số", "Màu", "Năm SX", "Giá/Ngày", "Giá/Giờ", "Trạng thái"};
+        String[] columns = {"Mã xe", "Tên xe", "Biển số", "Màu", "Năm SX", "Giá Thuê/Ngày", "Giá Thuê/Giờ", "Trạng thái", "SĐT khách thuê"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
-        JScrollPane scrollPane = new JScrollPane(table);
 
+        // 1. (Row & Grid)
+        table.setRowHeight(35);
+        table.setShowVerticalLines(false);
+        table.setGridColor(new Color(230, 230, 230)); // Đường kẻ ngang màu xám rất nhạt
+        table.setSelectionBackground(new Color(200, 225, 255)); // Màu nền màu xanh dương nhạt khi click chọn 1 dòng
+        table.setSelectionForeground(Color.BLACK); // Màu chữ khi được chọn
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Font chữ nội dung to và dễ đọc hơn
+
+        // 2. Tùy chỉnh Hàng tiêu đề (Header - Hàng trên cùng)
+        javax.swing.table.JTableHeader header = table.getTableHeader();
+        header.setPreferredSize(new Dimension(100, 40)); // Chiều cao của hàng trên cùng
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Chữ in đậm
+        header.setBackground(new Color(70,130,180)); // MÀU XANH NHẠT NHẠT (Light Blue)
+        header.setForeground(new Color(255,255,255)); // Chữ màu xám đen mượt mà
+        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(200, 200, 200))); // Kẻ một đường viền mỏng dưới header
+        header.setOpaque(true);
+
+        // 3. (Tùy chọn) Căn giữa nội dung một số cột cho đẹp mắt
+        javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(javax.swing.JLabel.CENTER);
+        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // Căn giữa Mã xe
+        table.getColumnModel().getColumn(2).setCellRenderer(centerRenderer); // Căn giữa Biển số
+        table.getColumnModel().getColumn(3).setCellRenderer(centerRenderer); // Căn giữa Màu
+        table.getColumnModel().getColumn(4).setCellRenderer(centerRenderer); // Căn giữa Năm SX
+        table.getColumnModel().getColumn(5).setCellRenderer(centerRenderer); // Căn giữa Giá/Ngày
+        table.getColumnModel().getColumn(6).setCellRenderer(centerRenderer); // Căn giữa Giá/Giờ
+        table.getColumnModel().getColumn(7).setCellRenderer(centerRenderer); // Căn giữa Trạng thái
+        table.getColumnModel().getColumn(8).setCellRenderer(centerRenderer);
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
         initInputPanel();
 
         JPanel centerContainer = new JPanel(new BorderLayout(0, 20));
@@ -138,31 +172,42 @@ public class BikeManagementPanel extends JPanel {
         txtYear = new JTextField(5);
         txtPriceDay = new JTextField(10);
         txtPriceHour = new JTextField(10);
-        cbStatusInput = new JComboBox<>(new String[]{"AVAILABLE", "INACTIVE"});
+        cbStatusInput = new JComboBox<>(new String[]{"AVAILABLE", "MAINTENANCE"});
 
         JButton btnSave = createActionButton("Lưu dữ liệu", new Color(46, 125, 50));
         JButton btnCancel = createActionButton("Hủy", Color.GRAY);
 
+        // Hàng 1 (gridy = 0)
         gbc.gridx = 0; gbc.gridy = 0; inputPanel.add(new JLabel("Mã xe:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtBikeCode, gbc);
         gbc.gridx = 2; inputPanel.add(new JLabel("Tên xe:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtBikeName, gbc);
 
+        // Hàng 2 (gridy = 1)
         gbc.gridx = 0; gbc.gridy = 1; inputPanel.add(new JLabel("Biển số:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtPlate, gbc);
         gbc.gridx = 2; inputPanel.add(new JLabel("Màu sắc:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtColor, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2; inputPanel.add(new JLabel("Giá/Ngày:"), gbc);
+        // Hàng 3 (gridy = 2)
+        gbc.gridx = 0; gbc.gridy = 2; inputPanel.add(new JLabel("Giá Thuê/Ngày:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtPriceDay, gbc);
-        gbc.gridx = 2; inputPanel.add(new JLabel("Giá/Giờ:"), gbc);
+        gbc.gridx = 2; inputPanel.add(new JLabel("Giá Thuê/Giờ:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtPriceHour, gbc);
 
-        gbc.gridx = 3; gbc.gridy = 3;
+        // Hàng 4 (gridy = 3) - Thêm Năm sản xuất và Trạng thái
+        gbc.gridx = 0; gbc.gridy = 3; inputPanel.add(new JLabel("Năm sản xuất:"), gbc);
+        gbc.gridx = 1; inputPanel.add(txtYear, gbc);
+        gbc.gridx = 2; inputPanel.add(new JLabel("Trạng thái:"), gbc);
+        gbc.gridx = 3; inputPanel.add(cbStatusInput, gbc);
+
+        // Hàng 5 (gridy = 4) - Các nút bấm
+        gbc.gridx = 3; gbc.gridy = 4;
         JPanel btnGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnGroup.add(btnCancel); btnGroup.add(btnSave);
         inputPanel.add(btnGroup, gbc);
 
+        // Gắn sự kiện cho các nút
         btnCancel.addActionListener(e -> inputPanel.setVisible(false));
         btnSave.addActionListener(e -> handleAddBike());
     }
@@ -209,7 +254,8 @@ public class BikeManagementPanel extends JPanel {
                 xe.getManufactureYear(),
                 priceDay,
                 priceHour,
-                xe.getStatus()
+                xe.getStatus(),
+                xe.getRenterPhone()
         };
         tableModel.addRow(row);
     }

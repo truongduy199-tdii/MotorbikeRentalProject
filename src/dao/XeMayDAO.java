@@ -10,7 +10,10 @@ public class XeMayDAO {
     public ArrayList<XeMayDTO> layDanhSachXeMay() {
         ArrayList<XeMayDTO> ds = new ArrayList<>();
         // Lấy tất cả các cột để tránh lỗi thiếu dữ liệu
-        String sql = "SELECT * FROM VEHICLES";
+        String sql = "SELECT v.*, c.phone AS renter_phone " +
+                "FROM VEHICLES v " +
+                "LEFT JOIN RENTAL_CONTRACTS r ON v.vehicle_id = r.vehicle_id AND r.contract_status = 'ACTIVE' " +
+                "LEFT JOIN CUSTOMERS c ON r.customer_id = c.customer_id";
 
         try (Connection conn = MySQLConnect.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -28,6 +31,7 @@ public class XeMayDAO {
                 xe.setRentalPricePerDay(rs.getDouble("rental_price_per_day"));
                 xe.setRentalPricePerHour(rs.getDouble("rental_price_per_hour"));
                 xe.setStatus(rs.getString("status"));
+                xe.setRenterPhone(rs.getString("renter_phone"));
                 ds.add(xe);
             }
         } catch (Exception e) {

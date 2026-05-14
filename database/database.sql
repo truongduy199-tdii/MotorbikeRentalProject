@@ -42,7 +42,7 @@ CREATE TABLE VEHICLES (
                           rental_price_per_day DECIMAL(10,2) NOT NULL CHECK (rental_price_per_day > 0),
                           rental_price_per_hour DECIMAL(10,2) NOT NULL CHECK (rental_price_per_hour > 0),
                           status ENUM('AVAILABLE', 'RENTED', 'MAINTENANCE', 'INACTIVE') DEFAULT 'AVAILABLE',
-                          description TEXT,
+    -- description TEXT,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           INDEX idx_vehicles_plate (license_plate),
                           INDEX idx_vehicles_status (status)
@@ -93,10 +93,10 @@ CREATE TABLE PAYMENTS (
 INSERT INTO USERS (username, password_hash, role)
 VALUES
     ('admin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', 'ADMIN'),
-    ('0901666124', 'f9573f8ad701007c2217bb602521a6b1fa9e3e52ef2cb84b95618f45650efd61', 'CUSTOMER'),
-    ('0986164589', 'f2ff4cea9ca5162e631d6fec17b6e36d8a455bcb1ed163a2058d9ce136b210c1', 'CUSTOMER'),
-    ('0903484322', '6fa304a68ae214a426f9850bfc1791e61156be1db1ee4534d2041d320e645245', 'CUSTOMER'),
-    ('0904498463', 'f464c8bc9935f6d43c8c76fa9b29ffad657c5badc498eb114178ece3c8f4a291', 'CUSTOMER');
+    ('0901666124', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'CUSTOMER'),
+    ('0986164589', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'CUSTOMER'),
+    ('0903484322', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'CUSTOMER'),
+    ('0904498463', '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4', 'CUSTOMER');
 
 -- 2. INSERT DATA: CUSTOMERS
 INSERT INTO CUSTOMERS (user_id, full_name, phone, email, cccd, birthday, address, driver_license_number)

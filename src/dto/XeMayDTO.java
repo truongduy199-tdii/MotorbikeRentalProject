@@ -12,6 +12,7 @@ public class XeMayDTO {
     private double rentalPricePerHour;
     private String status;
     private String description;
+    private String renterPhone;
 
     public XeMayDTO() {}
 
@@ -51,4 +52,7 @@ public class XeMayDTO {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public String getRenterPhone() { return (renterPhone == null || renterPhone.isEmpty()) ? "---" : renterPhone; }
+    public void setRenterPhone(String renterPhone) { this.renterPhone = renterPhone; }
 }
