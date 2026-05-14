@@ -3,6 +3,7 @@ package dto;
 public class TaiKhoanDTO {
     private int userId;
     private String username;
+    private String password;
     private String fullName;
     private String role; // 'ADMIN' hoặc 'CUSTOMER'
     private String status;
@@ -17,6 +18,9 @@ public class TaiKhoanDTO {
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getPassword() {return password;}
+    public void setPassword(String password) {this.password = password;}
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }

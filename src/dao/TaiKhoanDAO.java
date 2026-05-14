@@ -37,4 +37,23 @@ public class TaiKhoanDAO {
         }
         return user;
     }
+
+    public boolean themTaiKhoan(TaiKhoanDTO tk) {
+        String sql = "INSERT INTO USERS (username, password_hash, role, status) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = MySQLConnect.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, tk.getUsername());
+            ps.setString(2, tk.getPassword());
+            ps.setString(3, "CUSTOMER"); // Mặc định là khách hàng
+            ps.setString(4, "ACTIVE"); // Mặc định trạng thái là hoạt động
+
+            return ps.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
