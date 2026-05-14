@@ -4,31 +4,29 @@ import java.sql.Timestamp;
 
 public class HopDongDTO {
     private String contractCode;
-    private String customerName; // Lấy từ bảng CUSTOMERS
-    private String vehicleName;  // Lấy từ bảng VEHICLES (brand + model)
+    private int customerId;  // Thêm ID khách hàng (dùng để thêm mới)
+    private int vehicleId;   // Thêm ID xe (dùng để thêm mới)
+    private String customerName;
+    private String vehicleName;
     private Timestamp rentalStart;
     private Timestamp rentalEnd;
     private double depositAmount;
+    private double totalAmount;
+    private String rentalType; // 'DAY' hoặc 'HOUR'
     private String contractStatus;
 
-    // Constructor rỗng
     public HopDongDTO() {}
 
-    // Constructor đầy đủ
-    public HopDongDTO(String contractCode, String customerName, String vehicleName,
-                      Timestamp rentalStart, Timestamp rentalEnd, double depositAmount, String contractStatus) {
-        this.contractCode = contractCode;
-        this.customerName = customerName;
-        this.vehicleName = vehicleName;
-        this.rentalStart = rentalStart;
-        this.rentalEnd = rentalEnd;
-        this.depositAmount = depositAmount;
-        this.contractStatus = contractStatus;
-    }
+    // ================= GETTERS VÀ SETTERS =================
 
-    // Getters and Setters
     public String getContractCode() { return contractCode; }
     public void setContractCode(String contractCode) { this.contractCode = contractCode; }
+
+    public int getCustomerId() { return customerId; }
+    public void setCustomerId(int customerId) { this.customerId = customerId; }
+
+    public int getVehicleId() { return vehicleId; }
+    public void setVehicleId(int vehicleId) { this.vehicleId = vehicleId; }
 
     public String getCustomerName() { return customerName; }
     public void setCustomerName(String customerName) { this.customerName = customerName; }
@@ -44,6 +42,12 @@ public class HopDongDTO {
 
     public double getDepositAmount() { return depositAmount; }
     public void setDepositAmount(double depositAmount) { this.depositAmount = depositAmount; }
+
+    public double getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
+
+    public String getRentalType() { return rentalType; }
+    public void setRentalType(String rentalType) { this.rentalType = rentalType; }
 
     public String getContractStatus() { return contractStatus; }
     public void setContractStatus(String contractStatus) { this.contractStatus = contractStatus; }

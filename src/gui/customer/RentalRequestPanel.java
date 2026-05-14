@@ -9,181 +9,95 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 public class RentalRequestPanel extends JPanel {
-
+    private XeMayDTO bike;
     private CustomerMainFrame parentFrame;
-    private XeMayDTO currentBike;
-    private HopDongBUS hopDongBUS;
+    private JTextField txtStart, txtEnd;
+    private JComboBox<String> cbType;
+    private JLabel lblTotal;
 
-    private JLabel lblBikeName, lblLicense, lblPrice;
-    private JTextField txtStartDate, txtEndDate;
-    private JLabel lblTotalCost;
-
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-
-    public RentalRequestPanel(CustomerMainFrame parentFrame) {
+    public RentalRequestPanel(CustomerMainFrame parentFrame, XeMayDTO bike) {
         this.parentFrame = parentFrame;
-        this.hopDongBUS = new HopDongBUS();
-        setLayout(new BorderLayout());
+        this.bike = bike;
+        setLayout(new BorderLayout(20, 20));
+        setBackground(Color.WHITE);
         setBorder(new EmptyBorder(30, 50, 30, 50));
-        setBackground(new Color(245, 247, 250));
-
         initComponents();
     }
 
     private void initComponents() {
         // Tiêu đề
-        JLabel lblTitle = new JLabel("YÊU CẦU THUÊ XE");
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        JLabel lblTitle = new JLabel("TẠO YÊU CẦU THUÊ XE: " + bike.getVehicleName().toUpperCase());
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitle.setForeground(new Color(25, 118, 210));
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        lblTitle.setBorder(new EmptyBorder(0, 0, 20, 0));
         add(lblTitle, BorderLayout.NORTH);
 
         // Form điền thông tin
-        JPanel formPanel = new JPanel(new GridBagLayout());
+        JPanel formPanel = new JPanel(new GridLayout(6, 2, 10, 15));
         formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1),
-                new EmptyBorder(20, 20, 20, 20)
-        ));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        // Thông tin xe
-        gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Xe được chọn:"), gbc);
-        gbc.gridx = 1;
-        lblBikeName = new JLabel("...");
-        lblBikeName.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        formPanel.add(lblBikeName, gbc);
+        formPanel.add(new JLabel("Loại hình thuê:"));
+        cbType = new JComboBox<>(new String[]{"Thuê theo Ngày", "Thuê theo Giờ"});
+        formPanel.add(cbType);
 
-        gbc.gridx = 0; gbc.gridy = 1;
-        formPanel.add(new JLabel("Biển số:"), gbc);
-        gbc.gridx = 1;
-        lblLicense = new JLabel("...");
-        formPanel.add(lblLicense, gbc);
+        formPanel.add(new JLabel("Ngày bắt đầu (Định dạng: yyyy-mm-dd hh:mm:ss):"));
+        txtStart = new JTextField("2026-05-20 08:00:00");
+        formPanel.add(txtStart);
 
-        gbc.gridx = 0; gbc.gridy = 2;
-        formPanel.add(new JLabel("Giá thuê/ngày:"), gbc);
-        gbc.gridx = 1;
-        lblPrice = new JLabel("0 VNĐ");
-        formPanel.add(lblPrice, gbc);
+        formPanel.add(new JLabel("Ngày kết thúc (Định dạng: yyyy-mm-dd hh:mm:ss):"));
+        txtEnd = new JTextField("2026-05-22 08:00:00");
+        formPanel.add(txtEnd);
 
-        // Nhập ngày
-        gbc.gridx = 0; gbc.gridy = 3;
-        formPanel.add(new JLabel("Ngày bắt đầu (dd/MM/yyyy):"), gbc);
-        gbc.gridx = 1;
-        txtStartDate = new JTextField(15);
-        // Mặc định là ngày hôm nay
-        txtStartDate.setText(dateFormat.format(new Date()));
-        formPanel.add(txtStartDate, gbc);
+        formPanel.add(new JLabel("Giá tham khảo:"));
+        formPanel.add(new JLabel(String.format("%,.0f VNĐ/Ngày | %,.0f VNĐ/Giờ", bike.getRentalPricePerDay(), bike.getRentalPricePerHour())));
 
-        gbc.gridx = 0; gbc.gridy = 4;
-        formPanel.add(new JLabel("Ngày dự kiến trả (dd/MM/yyyy):"), gbc);
-        gbc.gridx = 1;
-        txtEndDate = new JTextField(15);
-        formPanel.add(txtEndDate, gbc);
-
-        // Tổng tiền
-        gbc.gridx = 0; gbc.gridy = 5;
-        formPanel.add(new JLabel("Tổng tiền dự kiến:"), gbc);
-        gbc.gridx = 1;
-        lblTotalCost = new JLabel("0 VNĐ");
-        lblTotalCost.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        lblTotalCost.setForeground(Color.RED);
-        formPanel.add(lblTotalCost, gbc);
+        formPanel.add(new JLabel("Tiền cọc yêu cầu:"));
+        formPanel.add(new JLabel("500,000 VNĐ"));
 
         add(formPanel, BorderLayout.CENTER);
 
-        // Các nút bấm
+        // Nút bấm
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        bottomPanel.setBackground(new Color(245, 247, 250));
+        bottomPanel.setBackground(Color.WHITE);
 
-        JButton btnCalculate = new JButton("Tính tiền");
-        JButton btnSubmit = new JButton("Gửi yêu cầu thuê");
-        btnSubmit.setBackground(new Color(0, 123, 255));
+        JButton btnBack = new JButton("Quay lại");
+        btnBack.addActionListener(e -> parentFrame.showCard("BIKE_BROWSING"));
+
+        JButton btnSubmit = new JButton("Xác nhận & Gửi yêu cầu");
+        btnSubmit.setBackground(new Color(40, 167, 69));
         btnSubmit.setForeground(Color.WHITE);
-
-        btnCalculate.addActionListener(e -> calculateTotal());
-
+        btnSubmit.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnSubmit.addActionListener(e -> submitRequest());
 
-        bottomPanel.add(btnCalculate);
+        bottomPanel.add(btnBack);
         bottomPanel.add(btnSubmit);
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    public void setVehicleData(XeMayDTO bike) {
-        this.currentBike = bike;
-        lblBikeName.setText(bike.getVehicleName());
-        lblLicense.setText(bike.getLicensePlate());
-        lblPrice.setText(String.format("%,.0f VNĐ", bike.getRentalPricePerDay()));
-        txtEndDate.setText("");
-        lblTotalCost.setText("0 VNĐ");
-    }
-
-    private long calculateTotal() {
-        if (currentBike == null) return -1;
-        try {
-            Date start = dateFormat.parse(txtStartDate.getText().trim());
-            Date end = dateFormat.parse(txtEndDate.getText().trim());
-
-            // Validate logic ngày
-            if (end.before(start)) {
-                JOptionPane.showMessageDialog(this, "Ngày trả phải lớn hơn hoặc bằng ngày bắt đầu!", "Lỗi ngày", JOptionPane.ERROR_MESSAGE);
-                return -1;
-            }
-
-            // Tính số ngày (nếu trả trong ngày tính là 1 ngày)
-            long diffInMillies = Math.abs(end.getTime() - start.getTime());
-            long diffInDays = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS) + 1;
-
-            long total = (long) (diffInDays * currentBike.getRentalPricePerDay());
-            lblTotalCost.setText(String.format("%,d VNĐ", total));
-            return total;
-
-        } catch (ParseException ex) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập đúng định dạng ngày dd/MM/yyyy", "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
-            return -1;
-        }
-    }
-
     private void submitRequest() {
-        long totalCost = calculateTotal();
-        if (totalCost == -1) return;
-
         try {
-            Date start = dateFormat.parse(txtStartDate.getText().trim());
-            Date end = dateFormat.parse(txtEndDate.getText().trim());
+            HopDongDTO hd = new HopDongDTO();
+            hd.setCustomerId(SessionUser.getCurrentUser().getUserId()); // Dùng userId
+            hd.setVehicleId(bike.getVehicleId());
+            hd.setRentalStart(Timestamp.valueOf(txtStart.getText()));
+            hd.setRentalEnd(Timestamp.valueOf(txtEnd.getText()));
+            hd.setRentalType(cbType.getSelectedIndex() == 0 ? "DAY" : "HOUR");
 
-            // Tạo DTO mới
-            HopDongDTO newContract = new HopDongDTO();
-            // Tạm thời gen mã ngẫu nhiên hoặc để DB tự tăng
-            newContract.setContractCode("HD_" + System.currentTimeMillis());
+            // Giả lập tính tiền cọc và tổng tiền cơ bản
+            hd.setDepositAmount(500000);
+            hd.setTotalAmount(bike.getRentalPricePerDay() * 2); // Tạm tính 2 ngày
 
-            String customerName = SessionUser.getCurrentUser() != null ? SessionUser.getCurrentUser().getUsername() : "Unknown";
-            newContract.setCustomerName(customerName);
-            newContract.setVehicleName(currentBike.getVehicleName());
-            newContract.setRentalStart(new Timestamp(start.getTime()));
-            newContract.setRentalEnd(new Timestamp(end.getTime()));
-            newContract.setDepositAmount(totalCost); // Giả sử tiền cọc = tổng tiền
-            newContract.setContractStatus("Chờ duyệt");
-
-            // Lưu ý: Bạn cần thêm hàm themHopDong(HopDongDTO hd) vào HopDongBUS và HopDongDAO
-            // hopDongBUS.themHopDong(newContract); 
-
-            JOptionPane.showMessageDialog(this, "Gửi yêu cầu thuê xe thành công! Vui lòng chờ Admin duyệt.");
-            parentFrame.showHistory();
-
-        } catch (ParseException ex) {
-            ex.printStackTrace();
+            HopDongBUS hopDongBUS = new HopDongBUS();
+            if (hopDongBUS.taoYeuCauThue(hd)) {
+                JOptionPane.showMessageDialog(this, "Gửi yêu cầu thành công! Vui lòng chờ Admin duyệt hợp đồng.");
+                parentFrame.showCard("RENTAL_HISTORY"); // Chuyển sang lịch sử để xem
+            } else {
+                JOptionPane.showMessageDialog(this, "Lỗi khi gửi yêu cầu. Vui lòng thử lại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập ngày tháng đúng định dạng: yyyy-mm-dd hh:mm:ss", "Lỗi định dạng", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

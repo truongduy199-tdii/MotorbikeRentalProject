@@ -10,8 +10,12 @@ public class TaiKhoanDAO {
     public TaiKhoanDTO kiemTraDangNhap(String username, String passwordHash) {
         TaiKhoanDTO user = null;
 
-        // CHỈ LẤY CÁC CỘT TỒN TẠI TRONG BẢNG USERS
-        String sql = "SELECT user_id, username, role, status FROM USERS WHERE username = ? AND password_hash = ? AND status = 'ACTIVE'";
+        // Sử dụng LEFT JOIN để lấy full_name từ bảng CUSTOMERS.
+        // Nếu là Admin (không có trong bảng CUSTOMERS), full_name sẽ mặc định là 'Administrator'
+        String sql = "SELECT u.user_id, u.username, u.role, u.status, IFNULL(c.full_name, 'Administrator') AS full_name " +
+                "FROM USERS u " +
+                "LEFT JOIN CUSTOMERS c ON u.user_id = c.user_id " +
+                "WHERE u.username = ? AND u.password_hash = ? AND u.status = 'ACTIVE'";
 
         try (Connection conn = MySQLConnect.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -24,12 +28,9 @@ public class TaiKhoanDAO {
                     user = new TaiKhoanDTO();
                     user.setUserId(rs.getInt("user_id"));
                     user.setUsername(rs.getString("username"));
+                    user.setFullName(rs.getString("full_name"));
                     user.setRole(rs.getString("role"));
                     user.setStatus(rs.getString("status"));
-
-                    // Do file LoginFrame có dòng gọi account.getFullName() để hiển thị câu "Xin chào..."
-                    // nên ta gán tạm fullName bằng username để tránh bị hiện chữ "Xin chào null"
-                    user.setFullName(rs.getString("username"));
                 }
             }
         } catch (Exception e) {
