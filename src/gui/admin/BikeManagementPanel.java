@@ -353,7 +353,6 @@ public class BikeManagementPanel extends JPanel {
         txtColor.setText("");
         txtYear.setText("");
         txtPriceDay.setText("");
-        // Đã xóa txtPriceHour
         cbStatusInput.setSelectedIndex(0);
     }
 }

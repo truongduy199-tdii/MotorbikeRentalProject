@@ -105,13 +105,15 @@ public class KhachHangDAO {
     }
 
     public boolean capNhatThongTin(KhachHangDTO kh) {
-        String sql = "UPDATE CUSTOMERS SET phone = ?, email = ?, address = ? WHERE user_id = ?";
+        String sql = "UPDATE CUSTOMERS SET phone = ?, email = ?, address = ?, birthday = ?, driver_license_number = ? WHERE user_id = ?";
         try (Connection conn = MySQLConnect.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, kh.getPhone());
             ps.setString(2, kh.getEmail());
             ps.setString(3, kh.getAddress());
             ps.setInt(4, kh.getUserId());
+            ps.setDate(7, kh.getBirthday());
+            ps.setString(8, kh.getDriverLicenseNumber());
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             throw new RuntimeException("Lỗi cập nhật CSDL khi đổi thông tin cá nhân: " + e.getMessage(), e);
@@ -147,5 +149,25 @@ public class KhachHangDAO {
         kh.setDriverLicenseNumber(rs.getString("driver_license_number"));
         kh.setStatus(rs.getString("status"));
         return kh;
+    }
+
+    public boolean themMoiKhachHang(KhachHangDTO kh) {
+        String sql = "INSERT INTO CUSTOMERS (user_id, full_name, phone, email, cccd, address, birthday, driver_license_number) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = MySQLConnect.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, kh.getUserId());
+            ps.setString(2, kh.getFullName());
+            ps.setString(3, kh.getPhone());
+            ps.setString(4, kh.getEmail());
+            ps.setString(5, kh.getCccd());
+            ps.setString(6, kh.getAddress());
+            ps.setDate(7, kh.getBirthday());
+            ps.setString(8, kh.getDriverLicenseNumber());
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi tạo mới hồ sơ khách hàng: " + e.getMessage(), e);
+        }
     }
 }

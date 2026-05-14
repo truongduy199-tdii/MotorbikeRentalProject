@@ -21,7 +21,6 @@ public class StatisticPanel extends JPanel {
     }
 
     private void initComponents() {
-        // --- TIÊU ĐỀ & NÚT LÀM MỚI ---
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setOpaque(false);
 
@@ -41,17 +40,14 @@ public class StatisticPanel extends JPanel {
         topPanel.add(btnRefresh, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
-        // --- KHU VỰC CÁC THẺ (CARDS) ---
         JPanel cardsPanel = new JPanel(new GridLayout(2, 2, 25, 25));
         cardsPanel.setOpaque(false);
 
-        // Khởi tạo các Label chứa giá trị (sẽ được cập nhật từ DB)
         lblRevenue = new JLabel("0 VNĐ", SwingConstants.CENTER);
         lblCustomers = new JLabel("0", SwingConstants.CENTER);
         lblTotalBikes = new JLabel("0", SwingConstants.CENTER);
         lblRentedBikes = new JLabel("0", SwingConstants.CENTER);
 
-        // Tạo 4 thẻ màu sắc khác nhau
         cardsPanel.add(createStatCard("TỔNG DOANH THU", lblRevenue, new Color(46, 204, 113), new Color(39, 174, 96)));     // Xanh lá
         cardsPanel.add(createStatCard("KHÁCH HÀNG HOẠT ĐỘNG", lblCustomers, new Color(155, 89, 182), new Color(142, 68, 173))); // Tím
         cardsPanel.add(createStatCard("TỔNG SỐ XE", lblTotalBikes, new Color(52, 152, 219), new Color(41, 128, 185)));          // Xanh dương
@@ -60,7 +56,6 @@ public class StatisticPanel extends JPanel {
         add(cardsPanel, BorderLayout.CENTER);
     }
 
-    // Hàm tạo giao diện cho từng Thẻ (Card)
     private JPanel createStatCard(String title, JLabel valueLabel, Color bgColor, Color bottomColor) {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(bgColor);
@@ -86,7 +81,6 @@ public class StatisticPanel extends JPanel {
         return card;
     }
 
-    // Hàm gọi BUS để kéo dữ liệu lên và bắt lỗi an toàn
     private void loadStatistics() {
         try {
             double revenue = hopDongBUS.layTongDoanhThu();

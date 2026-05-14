@@ -16,6 +16,7 @@ public class CustomerMainFrame extends JFrame {
     private JPanel mainContentPanel;
     private CardLayout cardLayout;
     private ArrayList<JButton> menuButtons = new ArrayList<>();
+    private boolean isProfileComplete = false;
 
     public CustomerMainFrame() {
         setTitle("Khách Hàng - Hệ Thống Thuê Xe Máy");
@@ -24,14 +25,10 @@ public class CustomerMainFrame extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        // ==========================================
-        // 1. SIDEBAR (MENU BÊN TRÁI) - CHUẨN ADMIN UI
-        // ==========================================
         JPanel sidebarPanel = new JPanel(new BorderLayout());
-        sidebarPanel.setBackground(new Color(44, 53, 63)); // Màu xanh đen đậm giống Admin
+        sidebarPanel.setBackground(new Color(44, 53, 63));
         sidebarPanel.setPreferredSize(new Dimension(240, 0));
 
-        // --- Phần Header của Sidebar ---
         JPanel headerPanel = new JPanel(new GridLayout(3, 1));
         headerPanel.setOpaque(false);
         headerPanel.setBorder(new EmptyBorder(20, 0, 20, 0));
@@ -46,14 +43,13 @@ public class CustomerMainFrame extends JFrame {
 
         JLabel lblName = new JLabel(SessionUser.getCurrentUser().getFullName(), SwingConstants.CENTER);
         lblName.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        lblName.setForeground(new Color(52, 152, 219)); // Tên user màu xanh nổi bật
+        lblName.setForeground(new Color(52, 152, 219));
 
         headerPanel.add(lblRole);
         headerPanel.add(lblWelcome);
         headerPanel.add(lblName);
         sidebarPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // --- Phần Các nút Menu (Center) ---
         JPanel menuItemsPanel = new JPanel();
         menuItemsPanel.setLayout(new BoxLayout(menuItemsPanel, BoxLayout.Y_AXIS));
         menuItemsPanel.setOpaque(false);
@@ -64,29 +60,28 @@ public class CustomerMainFrame extends JFrame {
         JButton btnProfile = createMenuButton("3. Hồ sơ Cá nhân");
 
         menuItemsPanel.add(btnBikes);
-        menuItemsPanel.add(Box.createRigidArea(new Dimension(0, 15))); // Khoảng cách giữa các nút
+        menuItemsPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         menuItemsPanel.add(btnHistory);
         menuItemsPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         menuItemsPanel.add(btnProfile);
 
         sidebarPanel.add(menuItemsPanel, BorderLayout.CENTER);
 
-        // --- Phần Nút Đăng xuất (Góc dưới cùng) ---
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setOpaque(false);
         bottomPanel.setBorder(new EmptyBorder(0, 15, 20, 0));
 
         JButton btnLogout = new JButton("Đăng xuất");
         btnLogout.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        btnLogout.setForeground(new Color(231, 76, 60)); // Màu đỏ chuẩn UI Admin
+        btnLogout.setForeground(new Color(231, 76, 60));
         btnLogout.setBackground(new Color(44, 53, 63));
         btnLogout.setBorderPainted(false);
         btnLogout.setFocusPainted(false);
         btnLogout.setContentAreaFilled(false);
         btnLogout.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnLogout.setHorizontalAlignment(SwingConstants.LEFT);
+        btnLogout.setPreferredSize(new Dimension(150, 40));
 
-        // Hiệu ứng di chuột cho nút đăng xuất
         btnLogout.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) { btnLogout.setForeground(new Color(255, 100, 100)); }
             public void mouseExited(MouseEvent e) { btnLogout.setForeground(new Color(231, 76, 60)); }
@@ -98,9 +93,6 @@ public class CustomerMainFrame extends JFrame {
 
         add(sidebarPanel, BorderLayout.WEST);
 
-        // ==========================================
-        // 2. MAIN CONTENT (NỘI DUNG CHÍNH)
-        // ==========================================
         cardLayout = new CardLayout();
         mainContentPanel = new JPanel(cardLayout);
 
@@ -110,23 +102,25 @@ public class CustomerMainFrame extends JFrame {
 
         add(mainContentPanel, BorderLayout.CENTER);
 
-        // ==========================================
-        // 3. SỰ KIỆN CHUYỂN TRANG
-        // ==========================================
-        btnBikes.addActionListener(e -> { showCard("BIKE_BROWSING"); setActiveButton(btnBikes); });
+        checkProfileStatus();
+
+        btnBikes.addActionListener(e -> {
+            if (!isProfileComplete) { requireProfile(); return; }
+            showCard("BIKE_BROWSING"); setActiveButton(btnBikes);
+        });
+
         btnHistory.addActionListener(e -> {
+            if (!isProfileComplete) { requireProfile(); return; }
             mainContentPanel.add(new RentalHistoryPanel(), "RENTAL_HISTORY_REFRESH");
             showCard("RENTAL_HISTORY_REFRESH");
             setActiveButton(btnHistory);
         });
+
         btnProfile.addActionListener(e -> {
             mainContentPanel.add(new CustomerProfilePanel(), "PROFILE_REFRESH");
             showCard("PROFILE_REFRESH");
             setActiveButton(btnProfile);
         });
-
-        // Chọn mặc định trang đầu tiên
-        setActiveButton(btnBikes);
     }
 
     // Hàm tạo nút Menu chuẩn Admin UI
@@ -163,7 +157,29 @@ public class CustomerMainFrame extends JFrame {
         return btn;
     }
 
-    // Hàm set Active: Đổi màu chữ thay vì màu nền (Giống Admin)
+    private void checkProfileStatus() {
+        int userId = SessionUser.getCurrentUser().getUserId();
+        dto.KhachHangDTO profile = new bus.KhachHangBUS().layThongTinTheoUserId(userId);
+
+        if (profile == null) {
+            isProfileComplete = false;
+            // Ép chuyển sang trang Profile luôn
+            showCard("CUSTOMER_PROFILE");
+            // Delay nhẹ popup để UI kịp load xong
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(this, "Chào mừng bạn mới!\nVui lòng cập nhật Họ tên và CCCD để kích hoạt tính năng Thuê Xe.", "Yêu cầu hoàn tất hồ sơ", JOptionPane.INFORMATION_MESSAGE);
+            });
+            // Tìm nút Profile trong danh sách menuButtons để tô màu xanh cho nó
+            if (menuButtons.size() >= 3) setActiveButton(menuButtons.get(2));
+        } else {
+            isProfileComplete = true;
+            // Chọn mặc định trang đầu tiên (Danh sách xe)
+            if (menuButtons.size() >= 1) setActiveButton(menuButtons.get(0));
+            showCard("BIKE_BROWSING");
+        }
+    }
+
+    // Hàm set Active
     private void setActiveButton(JButton activeButton) {
         for (JButton btn : menuButtons) {
             btn.setBackground(new Color(44, 53, 63));
@@ -180,7 +196,6 @@ public class CustomerMainFrame extends JFrame {
     public void showRentalRequest(XeMayDTO selectedBike) {
         mainContentPanel.add(new RentalRequestPanel(this, selectedBike), "RENTAL_REQUEST");
         showCard("RENTAL_REQUEST");
-        // Bỏ chọn menu khi vào form đặt xe
         for (JButton btn : menuButtons) {
             btn.setForeground(Color.WHITE);
             btn.setBackground(new Color(44, 53, 63));
@@ -193,5 +208,15 @@ public class CustomerMainFrame extends JFrame {
             dispose();
             new LoginFrame().setVisible(true);
         }
+    }
+
+    private void requireProfile() {
+        JOptionPane.showMessageDialog(this, "Bạn phải hoàn thiện Hồ sơ cá nhân trước khi sử dụng tính năng này!", "Hệ thống", JOptionPane.WARNING_MESSAGE);
+        showCard("CUSTOMER_PROFILE");
+        if (menuButtons.size() >= 3) setActiveButton(menuButtons.get(2));
+    }
+
+    public void unlockFeatures() {
+        isProfileComplete = true;
     }
 }

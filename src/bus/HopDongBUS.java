@@ -20,7 +20,6 @@ public class HopDongBUS {
         return hopDongDAO.timKiemHopDong(keyword, status);
     }
 
-    // Customer: Lấy danh sách lịch sử thuê xe
     public ArrayList<HopDongDTO> layHopDongTheoUser(int userId) {
         if (userId <= 0) {
             throw new IllegalArgumentException("ID người dùng không hợp lệ.");
@@ -70,7 +69,6 @@ public class HopDongBUS {
         if (hd.getRentalEnd().before(hd.getRentalStart())) {
             throw new IllegalArgumentException("Ngày kết thúc phải lớn hơn ngày bắt đầu thuê.");
         }
-        // Gắn cứng tiền cọc 1 triệu
         hd.setDepositAmount(TIEN_COC_CO_DINH);
         return hopDongDAO.taoYeuCauThue(hd);
     }
@@ -82,7 +80,6 @@ public class HopDongBUS {
         if (hd.getTotalAmount() < 0) {
             throw new IllegalArgumentException("Tổng tiền không được là số âm!");
         }
-        // Gọi xuống DAO để lưu vào CSDL
         return hopDongDAO.capNhatHopDong(hd);
     }
 

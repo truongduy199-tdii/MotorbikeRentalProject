@@ -168,24 +168,76 @@ public class HopDongDAO {
     }
 
     public boolean taoYeuCauThue(HopDongDTO hd) {
-        String sql = "INSERT INTO RENTAL_CONTRACTS (contract_code, customer_id, vehicle_id, created_by, " +
+        String sqlContract = "INSERT INTO RENTAL_CONTRACTS (contract_code, customer_id, vehicle_id, created_by, " +
                 "rental_start, rental_end, deposit_amount, total_amount, contract_status) " +
                 "VALUES (?, (SELECT customer_id FROM CUSTOMERS WHERE user_id = ?), ?, 1, ?, ?, ?, ?, 'PENDING')";
 
-        try (Connection conn = MySQLConnect.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sqlPayment = "INSERT INTO PAYMENTS (contract_id, payment_method, payment_amount, payment_status) " +
+                "VALUES (?, 'BANKING', ?, 'UNPAID')";
 
-            ps.setString(1, "HD" + (System.currentTimeMillis() % 1000000));
-            ps.setInt(2, hd.getCustomerId());
-            ps.setInt(3, hd.getVehicleId());
-            ps.setTimestamp(4, hd.getRentalStart());
-            ps.setTimestamp(5, hd.getRentalEnd());
-            ps.setDouble(6, hd.getDepositAmount());
-            ps.setDouble(7, hd.getTotalAmount());
+        Connection conn = null;
+        PreparedStatement psContract = null;
+        PreparedStatement psPayment = null;
+        ResultSet rs = null;
 
-            return ps.executeUpdate() > 0;
+        try {
+            conn = MySQLConnect.getConnection();
+            conn.setAutoCommit(false);
+
+            psContract = conn.prepareStatement(sqlContract, java.sql.Statement.RETURN_GENERATED_KEYS);
+
+            String contractCode = "HD" + (System.currentTimeMillis() % 1000000);
+            psContract.setString(1, contractCode);
+            psContract.setInt(2, hd.getCustomerId());
+            psContract.setInt(3, hd.getVehicleId());
+            psContract.setTimestamp(4, hd.getRentalStart());
+            psContract.setTimestamp(5, hd.getRentalEnd());
+            psContract.setDouble(6, hd.getDepositAmount());
+            psContract.setDouble(7, hd.getTotalAmount());
+
+            int affectedRows = psContract.executeUpdate();
+            if (affectedRows == 0) {
+                conn.rollback();
+                return false;
+            }
+
+            int newContractId = -1;
+            rs = psContract.getGeneratedKeys();
+            if (rs.next()) {
+                newContractId = rs.getInt(1);
+            } else {
+                conn.rollback();
+                return false;
+            }
+
+            psPayment = conn.prepareStatement(sqlPayment);
+            psPayment.setInt(1, newContractId);
+            psPayment.setDouble(2, hd.getTotalAmount());
+
+            psPayment.executeUpdate();
+
+            conn.commit();
+            return true;
+
         } catch (Exception e) {
-            throw new RuntimeException("Lỗi khi tạo yêu cầu thuê xe xuống CSDL: " + e.getMessage(), e);
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+            throw new RuntimeException("Lỗi khi tạo yêu cầu thuê và lưu thanh toán: " + e.getMessage(), e);
+        } finally {
+            try { if (rs != null) rs.close(); } catch (Exception e) {}
+            try { if (psContract != null) psContract.close(); } catch (Exception e) {}
+            try { if (psPayment != null) psPayment.close(); } catch (Exception e) {}
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                }
+            } catch (Exception e) {}
         }
     }
 

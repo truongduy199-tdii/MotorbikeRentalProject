@@ -23,7 +23,6 @@ public class TaiKhoanBUS {
             throw new IllegalArgumentException("Sai tên đăng nhập hoặc mật khẩu.");
         }
 
-        // Kiểm tra xem tài khoản có bị Admin khóa hay không
         if ("BLOCKED".equalsIgnoreCase(account.getStatus()) || "INACTIVE".equalsIgnoreCase(account.getStatus())) {
             throw new IllegalArgumentException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên.");
         }

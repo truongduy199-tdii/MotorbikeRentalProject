@@ -30,22 +30,41 @@ public class RentalHistoryPanel extends JPanel {
     }
 
     private void initComponents() {
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(245, 247, 250));
+        topPanel.setBorder(new EmptyBorder(0, 0, 15, 0));
+
         JLabel lblTitle = new JLabel("LỊCH SỬ THUÊ XE CỦA BẠN");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        add(lblTitle, BorderLayout.NORTH);
+        lblTitle.setForeground(new Color(44, 53, 63));
+        topPanel.add(lblTitle, BorderLayout.WEST);
+        add(topPanel, BorderLayout.NORTH);
 
-        String[] columns = {"Mã HĐ", "Tên Xe", "Ngày bắt đầu", "Ngày kết thúc", "Tổng Tiền", "Trạng thái"};
+        String[] columns = {"Mã HĐ", "Tên Xe", "Ngày bắt đầu", "Ngày kết thúc", "Tổng tiền", "Trạng thái"};
         tableModel = new DefaultTableModel(columns, 0) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
-        table.setRowHeight(30);
+
+        // Định dạng bảng hiện đại
+        table.setRowHeight(35);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        table.getTableHeader().setBackground(new Color(240, 240, 240));
+        table.setSelectionBackground(new Color(52, 152, 219));
+        table.setSelectionForeground(Color.WHITE);
 
         JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(230, 230, 230)));
         add(scrollPane, BorderLayout.CENTER);
+        // CĂN GIỮA BẢNG LỊCH SỬ THUÊ
+        javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            table.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
+        ((javax.swing.table.DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
     }
 
     public void loadData() {

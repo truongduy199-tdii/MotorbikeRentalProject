@@ -6,17 +6,18 @@ import utils.SessionUser;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.sql.Date;
 
 public class CustomerProfilePanel extends JPanel {
 
     private KhachHangBUS khachHangBUS;
     private KhachHangDTO currentCustomer;
+    private boolean isNewProfile = false;
 
-    private JTextField txtFullName, txtCccd, txtPhone, txtEmail, txtAddress;
+    private JTextField txtFullName, txtCccd, txtPhone, txtEmail, txtAddress, txtBirthday, txtDriverLicense;
     private JPasswordField txtOldPass, txtNewPass, txtConfirmPass;
 
     public CustomerProfilePanel() {
@@ -32,74 +33,111 @@ public class CustomerProfilePanel extends JPanel {
     private void initComponents() {
         JLabel lblTitle = new JLabel("HỒ SƠ CÁ NHÂN");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        lblTitle.setForeground(new Color(25, 118, 210));
+        lblTitle.setForeground(new Color(44, 53, 63));
+        lblTitle.setBorder(new EmptyBorder(0, 0, 15, 0));
         add(lblTitle, BorderLayout.NORTH);
 
         JPanel centerPanel = new JPanel(new GridLayout(1, 2, 30, 0));
-        centerPanel.setBackground(Color.WHITE);
+        centerPanel.setBackground(new Color(245, 247, 250)); // Nền đồng bộ MainFrame
 
-        // --- CỘT 1: THÔNG TIN CÁ NHÂN ---
-        JPanel infoPanel = new JPanel(new GridLayout(6, 2, 10, 15));
+        JPanel infoPanel = new JPanel(new GridLayout(8, 2, 10, 15));
         infoPanel.setBackground(Color.WHITE);
-        infoPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Thông tin liên hệ", TitledBorder.LEFT, TitledBorder.TOP, new Font("Segoe UI", Font.BOLD, 14)));
+        infoPanel.setBorder(BorderFactory.createCompoundBorder(
+                new EmptyBorder(0, 0, 0, 0), // FlatLaf xử lý shadow
+                new EmptyBorder(20, 25, 20, 25)
+        ));
+        infoPanel.putClientProperty(com.formdev.flatlaf.FlatClientProperties.STYLE, "arc: 15");
 
-        infoPanel.add(new JLabel("Họ và tên (Cố định):"));
-        txtFullName = new JTextField(); txtFullName.setEditable(false);
+        infoPanel.add(createStyledLabel("Họ và tên:"));
+        txtFullName = new JTextField();
+        txtFullName.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "Nhập họ tên đầy đủ");
         infoPanel.add(txtFullName);
 
-        infoPanel.add(new JLabel("Số CCCD (Cố định):"));
-        txtCccd = new JTextField(); txtCccd.setEditable(false);
+        infoPanel.add(createStyledLabel("Số CCCD:"));
+        txtCccd = new JTextField();
+        txtCccd.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "Nhập 12 số CCCD");
         infoPanel.add(txtCccd);
 
-        infoPanel.add(new JLabel("Số điện thoại:"));
+        infoPanel.add(createStyledLabel("Số điện thoại:"));
         txtPhone = new JTextField();
+        txtPhone.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "Nhập số điện thoại");
         infoPanel.add(txtPhone);
 
-        infoPanel.add(new JLabel("Email:"));
+        infoPanel.add(createStyledLabel("Email:"));
         txtEmail = new JTextField();
         infoPanel.add(txtEmail);
 
-        infoPanel.add(new JLabel("Địa chỉ:"));
+        infoPanel.add(createStyledLabel("Ngày sinh (YYYY-MM-DD):"));
+        txtBirthday = new JTextField();
+        txtBirthday.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "VD: 2000-12-30");
+        infoPanel.add(txtBirthday);
+
+        infoPanel.add(createStyledLabel("Địa chỉ:"));
         txtAddress = new JTextField();
         infoPanel.add(txtAddress);
 
-        JButton btnUpdateInfo = new JButton("Cập nhật thông tin");
+        infoPanel.add(createStyledLabel("Giấy phép lái xe:"));
+        txtDriverLicense = new JTextField();
+        txtDriverLicense.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "Nhập mã số GPLX");
+        infoPanel.add(txtDriverLicense);
+
+        JButton btnUpdateInfo = new JButton("Lưu hồ sơ");
+        btnUpdateInfo.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnUpdateInfo.setBackground(new Color(23, 162, 184));
         btnUpdateInfo.setForeground(Color.WHITE);
+        btnUpdateInfo.putClientProperty(com.formdev.flatlaf.FlatClientProperties.STYLE, "arc: 10");
+        btnUpdateInfo.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnUpdateInfo.addActionListener(e -> updateInfo());
-        infoPanel.add(new JLabel("")); // Dummy cell
+
+        infoPanel.add(new JLabel(""));
         infoPanel.add(btnUpdateInfo);
 
         centerPanel.add(infoPanel);
 
-        // --- CỘT 2: ĐỔI MẬT KHẨU ---
-        JPanel passPanel = new JPanel(new GridLayout(6, 2, 10, 15));
+        JPanel passPanel = new JPanel(new GridLayout(8, 2, 10, 15));
         passPanel.setBackground(Color.WHITE);
-        passPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.LIGHT_GRAY), "Đổi mật khẩu", TitledBorder.LEFT, TitledBorder.TOP, new Font("Segoe UI", Font.BOLD, 14)));
+        passPanel.setBorder(new EmptyBorder(20, 25, 20, 25));
+        passPanel.putClientProperty(com.formdev.flatlaf.FlatClientProperties.STYLE, "arc: 15");
 
-        passPanel.add(new JLabel("Mật khẩu hiện tại:"));
+        passPanel.add(createStyledLabel("Mật khẩu hiện tại:"));
         txtOldPass = new JPasswordField();
+        txtOldPass.putClientProperty(com.formdev.flatlaf.FlatClientProperties.STYLE, "showRevealButton: true");
         passPanel.add(txtOldPass);
 
-        passPanel.add(new JLabel("Mật khẩu mới:"));
+        passPanel.add(createStyledLabel("Mật khẩu mới:"));
         txtNewPass = new JPasswordField();
+        txtNewPass.putClientProperty(com.formdev.flatlaf.FlatClientProperties.STYLE, "showRevealButton: true");
         passPanel.add(txtNewPass);
 
-        passPanel.add(new JLabel("Nhập lại MK mới:"));
+        passPanel.add(createStyledLabel("Nhập lại MK mới:"));
         txtConfirmPass = new JPasswordField();
+        txtConfirmPass.putClientProperty(com.formdev.flatlaf.FlatClientProperties.STYLE, "showRevealButton: true");
         passPanel.add(txtConfirmPass);
 
+        passPanel.add(new JLabel("")); passPanel.add(new JLabel(""));
+        passPanel.add(new JLabel("")); passPanel.add(new JLabel(""));
+        passPanel.add(new JLabel("")); passPanel.add(new JLabel(""));
+
         JButton btnChangePass = new JButton("Đổi mật khẩu");
+        btnChangePass.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnChangePass.setBackground(new Color(220, 53, 69));
         btnChangePass.setForeground(Color.WHITE);
+        btnChangePass.putClientProperty(com.formdev.flatlaf.FlatClientProperties.STYLE, "arc: 10");
+        btnChangePass.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnChangePass.addActionListener(e -> changePassword());
-        passPanel.add(new JLabel("")); // Dummy cell
+
+        passPanel.add(new JLabel(""));
         passPanel.add(btnChangePass);
 
         centerPanel.add(passPanel);
         add(centerPanel, BorderLayout.CENTER);
+    }
+
+    private JLabel createStyledLabel(String text) {
+        JLabel lbl = new JLabel(text);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lbl.setForeground(new Color(80, 80, 80));
+        return lbl;
     }
 
     private void loadCustomerData() {
@@ -107,31 +145,85 @@ public class CustomerProfilePanel extends JPanel {
         currentCustomer = khachHangBUS.layThongTinTheoUserId(userId);
 
         if (currentCustomer != null) {
+            isNewProfile = false;
             txtFullName.setText(currentCustomer.getFullName());
+            txtFullName.setEditable(false);
             txtCccd.setText(currentCustomer.getCccd());
+            txtCccd.setEditable(false);
+
             txtPhone.setText(currentCustomer.getPhone());
             txtEmail.setText(currentCustomer.getEmail());
             txtAddress.setText(currentCustomer.getAddress());
+
+            if (currentCustomer.getBirthday() != null) {
+                txtBirthday.setText(currentCustomer.getBirthday().toString());
+            }
+            txtDriverLicense.setText(currentCustomer.getDriverLicenseNumber());
+
+        } else {
+            isNewProfile = true;
+            txtFullName.setEditable(true);
+            txtCccd.setEditable(true);
+            txtPhone.setText(SessionUser.getCurrentUser().getUsername());
         }
     }
 
     private void updateInfo() {
-        if (currentCustomer != null) {
-            try {
+        try {
+            String birthdayStr = txtBirthday.getText().trim();
+            Date sqlBirthday = null;
+            if (!birthdayStr.isEmpty()) {
+                try {
+                    sqlBirthday = Date.valueOf(birthdayStr);
+                } catch (Exception ex) {
+                    throw new IllegalArgumentException("Ngày sinh không đúng định dạng. Vui lòng nhập YYYY-MM-DD (VD: 2000-12-30)");
+                }
+            } else {
+                throw new IllegalArgumentException("Ngày sinh không được để trống!");
+            }
+
+            String driverLicense = txtDriverLicense.getText().trim();
+            if (driverLicense.isEmpty()) {
+                throw new IllegalArgumentException("Giấy phép lái xe không được để trống!");
+            }
+
+            if (isNewProfile) {
+                KhachHangDTO newKh = new KhachHangDTO();
+                newKh.setUserId(SessionUser.getCurrentUser().getUserId());
+                newKh.setFullName(txtFullName.getText().trim());
+                newKh.setCccd(txtCccd.getText().trim());
+                newKh.setPhone(txtPhone.getText().trim());
+                newKh.setEmail(txtEmail.getText().trim());
+                newKh.setAddress(txtAddress.getText().trim());
+                newKh.setBirthday(sqlBirthday);
+                newKh.setDriverLicenseNumber(driverLicense);
+
+                if (khachHangBUS.themMoiHoSo(newKh)) {
+                    JOptionPane.showMessageDialog(this, "Tạo hồ sơ thành công! Bây giờ bạn đã có thể thuê xe.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    isNewProfile = false; // Chuyển trạng thái
+                    txtFullName.setEditable(false);
+                    txtCccd.setEditable(false);
+
+                    Container parent = SwingUtilities.getAncestorOfClass(CustomerMainFrame.class, this);
+                    if (parent != null) {
+                        ((CustomerMainFrame) parent).unlockFeatures();
+                    }
+                }
+            } else {
                 currentCustomer.setPhone(txtPhone.getText().trim());
                 currentCustomer.setEmail(txtEmail.getText().trim());
                 currentCustomer.setAddress(txtAddress.getText().trim());
+                currentCustomer.setBirthday(sqlBirthday);
+                currentCustomer.setDriverLicenseNumber(driverLicense);
 
                 if (khachHangBUS.capNhatThongTin(currentCustomer)) {
-                    JOptionPane.showMessageDialog(this, "Cập nhật thông tin thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Lỗi cập nhật. Vui lòng thử lại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Cập nhật thông tin liên hệ thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 }
-            } catch (IllegalArgumentException ex) {
-                JOptionPane.showMessageDialog(this, ex.getMessage(), "Dữ liệu không hợp lệ", JOptionPane.WARNING_MESSAGE);
-            } catch (RuntimeException ex) {
-                JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
             }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Dữ liệu không hợp lệ", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -168,7 +260,6 @@ public class CustomerProfilePanel extends JPanel {
         }
     }
 
-    // Hàm băm mật khẩu chuẩn SHA-256
     private String hashSHA256(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

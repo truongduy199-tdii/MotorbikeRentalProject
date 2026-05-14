@@ -9,7 +9,7 @@ public class TaiKhoanDAO {
 
     public TaiKhoanDTO kiemTraDangNhap(String username, String passwordHash) {
         TaiKhoanDTO user = null;
-        String sql = "SELECT u.user_id, u.username, u.role, u.status, IFNULL(c.full_name, 'Administrator') AS full_name " +
+        String sql = "SELECT u.user_id, u.username, u.role, u.status, IFNULL(c.full_name, 'Updating...') AS full_name " +
                 "FROM USERS u " +
                 "LEFT JOIN CUSTOMERS c ON u.user_id = c.user_id " +
                 "WHERE u.username = ? AND u.password_hash = ?";

@@ -54,7 +54,6 @@ public class KhachHangBUS {
     }
 
     public boolean capNhatThongTin(KhachHangDTO kh) {
-        // Bắt lỗi nghiệp vụ
         if (kh.getPhone() == null || kh.getPhone().trim().isEmpty()) {
             throw new IllegalArgumentException("Số điện thoại không được để trống.");
         }
@@ -71,6 +70,10 @@ public class KhachHangBUS {
         return khachHangDAO.doiMatKhau(userId, oldPassHash, newPassHash);
     }
 
+    public boolean themMoiHoSo(KhachHangDTO kh) {
+        kiemTraDuLieu(kh);
+        return khachHangDAO.themMoiKhachHang(kh);
+    }
 
 
 

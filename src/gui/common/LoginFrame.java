@@ -102,12 +102,11 @@ public class LoginFrame extends JFrame {
         linksPanel.setMaximumSize(new Dimension(300, 30));
 
         lblRegister = new JLabel("<html><u>Chưa có tài khoản? Đăng ký ngay!</u></html>");
-        // Thêm sự kiện click chuột cho link Đăng ký bên trong LoginFrame
         lblRegister.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                dispose(); // Đóng form Login
-                new RegisterFrame().setVisible(true); // Bật form Register
+                dispose();
+                new RegisterFrame().setVisible(true);
             }
         });
         lblRegister.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -116,7 +115,6 @@ public class LoginFrame extends JFrame {
 
         linksPanel.add(lblRegister);
 
-        // THÊM CÁC THÀNH PHẦN VÀO PANEL
         loginPanel.add(lblLogo);
         loginPanel.add(lblTitle);
 
@@ -135,18 +133,15 @@ public class LoginFrame extends JFrame {
         add(loginPanel, new GridBagConstraints());
     }
 
-    // Thay thế logic đăng nhập bên trong sự kiện click của btnLogin
     private void handleLogin() {
         try {
             String username = txtUsername.getText().trim();
             String password = new String(txtPassword.getPassword());
 
-            // Đẩy xuống BUS xử lý, nếu có lỗi nó sẽ nhảy xuống khối catch
             TaiKhoanDTO account = taiKhoanBUS.kiemTraDangNhap(username, password);
 
             SessionUser.setCurrentUser(account);
 
-            // Phân quyền chuyển trang
             if (account.getRole() != null && account.getRole().equalsIgnoreCase("ADMIN")) {
                 gui.admin.AdminMainFrame adminFrame = new gui.admin.AdminMainFrame();
                 adminFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -156,13 +151,11 @@ public class LoginFrame extends JFrame {
                 customerFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
                 customerFrame.setVisible(true);
             }
-            this.dispose(); // Đóng form Login
+            this.dispose();
 
         } catch (IllegalArgumentException ex) {
-            // Bắt lỗi: Sai pass, trống thông tin, TÀI KHOẢN BỊ KHÓA
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi Đăng Nhập", JOptionPane.WARNING_MESSAGE);
         } catch (RuntimeException ex) {
-            // Bắt lỗi: Mất kết nối CSDL
             JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Máy Chủ", JOptionPane.ERROR_MESSAGE);
         }
     }
