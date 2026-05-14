@@ -16,7 +16,7 @@ public class BikeBrowsingPanel extends JPanel {
 
     private JTable tableBikes;
     private DefaultTableModel tableModel;
-    private TableRowSorter<DefaultTableModel> rowSorter; // Thêm bộ lọc cho bảng
+    private TableRowSorter<DefaultTableModel> rowSorter;
     private XeMayBUS xeMayBUS;
     private CustomerMainFrame parentFrame;
     private ArrayList<XeMayDTO> listBikes;
@@ -26,7 +26,7 @@ public class BikeBrowsingPanel extends JPanel {
         this.xeMayBUS = new XeMayBUS();
 
         setLayout(new BorderLayout(15, 15));
-        setBackground(new Color(245, 247, 250)); // Nền màu xám cực nhạt giúp bảng nổi bật hơn
+        setBackground(new Color(245, 247, 250));
         setBorder(new EmptyBorder(25, 30, 25, 30));
 
         initComponents();
@@ -34,16 +34,14 @@ public class BikeBrowsingPanel extends JPanel {
     }
 
     private void initComponents() {
-        // --- PHẦN HEADER: Tiêu đề + Thanh tìm kiếm ---
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(new Color(245, 247, 250));
 
-        JLabel lblTitle = new JLabel("DANH SÁCH XE CHO THUÊ", SwingConstants.CENTER); // Thêm SwingConstants.CENTER
+        JLabel lblTitle = new JLabel("DANH SÁCH XE CHO THUÊ", SwingConstants.CENTER);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
-        lblTitle.setForeground(new Color(41, 128, 185)); // Màu xanh dương giống admin
-        topPanel.add(lblTitle, BorderLayout.CENTER); // Đổi từ WEST sang CENTER
+        lblTitle.setForeground(new Color(41, 128, 185));
+        topPanel.add(lblTitle, BorderLayout.CENTER);
 
-        // Ô Tìm kiếm
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         searchPanel.setBackground(new Color(245, 247, 250));
         JLabel lblSearch = new JLabel("🔍 Tìm kiếm:");
@@ -51,38 +49,31 @@ public class BikeBrowsingPanel extends JPanel {
         JTextField txtSearch = new JTextField(20);
         txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        // Sự kiện gõ phím để lọc dữ liệu trực tiếp
         txtSearch.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) { searchTable(txtSearch.getText()); }
-            @Override
-            public void removeUpdate(DocumentEvent e) { searchTable(txtSearch.getText()); }
-            @Override
-            public void changedUpdate(DocumentEvent e) { searchTable(txtSearch.getText()); }
+            @Override public void insertUpdate(DocumentEvent e) { searchTable(txtSearch.getText()); }
+            @Override public void removeUpdate(DocumentEvent e) { searchTable(txtSearch.getText()); }
+            @Override public void changedUpdate(DocumentEvent e) { searchTable(txtSearch.getText()); }
         });
 
         searchPanel.add(lblSearch);
         searchPanel.add(txtSearch);
         topPanel.add(searchPanel, BorderLayout.EAST);
-
         add(topPanel, BorderLayout.NORTH);
 
-        // --- PHẦN BẢNG DỮ LIỆU ---
-        String[] columnNames = {"Mã Xe", "Hãng", "Tên Xe", "Biển Số", "Màu Sắc", "Giá/Ngày", "Giá/Giờ", "Trạng Thái"};
+        // ĐÃ XÓA CỘT "Giá/Giờ"
+        String[] columnNames = {"Mã Xe", "Hãng", "Tên Xe", "Biển Số", "Màu Sắc", "Giá/Ngày", "Trạng Thái"};
         tableModel = new DefaultTableModel(columnNames, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            @Override public boolean isCellEditable(int row, int column) { return false; }
         };
 
         tableBikes = new JTable(tableModel);
         rowSorter = new TableRowSorter<>(tableModel);
-        tableBikes.setRowSorter(rowSorter); // Gắn bộ lọc vào bảng
+        tableBikes.setRowSorter(rowSorter);
 
         tableBikes.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        tableBikes.setRowHeight(35); // Cho dòng cao lên cho dễ nhìn
-        tableBikes.setSelectionBackground(new Color(173, 216, 230)); // Màu xanh nhạt khi bôi đen dòng
+        tableBikes.setRowHeight(35);
+        tableBikes.setSelectionBackground(new Color(173, 216, 230));
 
-        // Chỉnh style cho Header của bảng
         tableBikes.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
         tableBikes.getTableHeader().setBackground(new Color(52, 152, 219));
         tableBikes.getTableHeader().setForeground(Color.WHITE);
@@ -91,7 +82,6 @@ public class BikeBrowsingPanel extends JPanel {
         scrollPane.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- PHẦN DƯỚI CÙNG: Nút hành động ---
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         bottomPanel.setBackground(new Color(245, 247, 250));
 
@@ -107,29 +97,31 @@ public class BikeBrowsingPanel extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    // Hàm lọc dữ liệu trên bảng
     private void searchTable(String text) {
         if (text.trim().length() == 0) {
             rowSorter.setRowFilter(null);
         } else {
-            // (?i) giúp tìm kiếm không phân biệt hoa thường
             rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
         }
     }
 
     public void loadBikeData() {
-        tableModel.setRowCount(0);
-        listBikes = xeMayBUS.layDanhSachXeMay();
+        try {
+            tableModel.setRowCount(0);
+            listBikes = xeMayBUS.layDanhSachXeMay();
 
-        for (XeMayDTO xe : listBikes) {
-            Object[] row = {
-                    xe.getVehicleCode(), xe.getBrand(), xe.getModel(),
-                    xe.getLicensePlate(), xe.getColor(),
-                    String.format("%,.0f VNĐ", xe.getRentalPricePerDay()),
-                    String.format("%,.0f VNĐ", xe.getRentalPricePerHour()),
-                    xe.getStatus()
-            };
-            tableModel.addRow(row);
+            for (XeMayDTO xe : listBikes) {
+                Object[] row = {
+                        xe.getVehicleCode(), xe.getBrand(), xe.getModel(),
+                        xe.getLicensePlate(), xe.getColor(),
+                        String.format("%,.0f VNĐ", xe.getRentalPricePerDay()),
+                        // Đã xóa giá/giờ khỏi object row
+                        xe.getStatus()
+                };
+                tableModel.addRow(row);
+            }
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Không thể tải danh sách xe: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -140,7 +132,6 @@ public class BikeBrowsingPanel extends JPanel {
             return;
         }
 
-        // Chuyển index từ view (bảng đã lọc) về model gốc để lấy đúng đối tượng xe
         int modelRow = tableBikes.convertRowIndexToModel(viewRow);
         String vehicleCode = tableModel.getValueAt(modelRow, 0).toString();
 
@@ -153,7 +144,7 @@ public class BikeBrowsingPanel extends JPanel {
         }
 
         if (selectedBike != null && !selectedBike.getStatus().equals("AVAILABLE")) {
-            JOptionPane.showMessageDialog(this, "Xe này hiện không trống. Vui lòng chọn xe khác!", "Từ chối", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Xe này hiện đang được thuê hoặc bảo trì. Vui lòng chọn xe khác!", "Từ chối", JOptionPane.ERROR_MESSAGE);
             return;
         }
 

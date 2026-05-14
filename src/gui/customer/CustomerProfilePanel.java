@@ -117,42 +117,54 @@ public class CustomerProfilePanel extends JPanel {
 
     private void updateInfo() {
         if (currentCustomer != null) {
-            currentCustomer.setPhone(txtPhone.getText());
-            currentCustomer.setEmail(txtEmail.getText());
-            currentCustomer.setAddress(txtAddress.getText());
+            try {
+                currentCustomer.setPhone(txtPhone.getText().trim());
+                currentCustomer.setEmail(txtEmail.getText().trim());
+                currentCustomer.setAddress(txtAddress.getText().trim());
 
-            if (khachHangBUS.capNhatThongTin(currentCustomer)) {
-                JOptionPane.showMessageDialog(this, "Cập nhật thông tin thành công!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Lỗi cập nhật. Vui lòng thử lại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                if (khachHangBUS.capNhatThongTin(currentCustomer)) {
+                    JOptionPane.showMessageDialog(this, "Cập nhật thông tin thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Lỗi cập nhật. Vui lòng thử lại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Dữ liệu không hợp lệ", JOptionPane.WARNING_MESSAGE);
+            } catch (RuntimeException ex) {
+                JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
     private void changePassword() {
-        String oldPass = new String(txtOldPass.getPassword());
-        String newPass = new String(txtNewPass.getPassword());
-        String confirmPass = new String(txtConfirmPass.getPassword());
+        try {
+            String oldPass = new String(txtOldPass.getPassword());
+            String newPass = new String(txtNewPass.getPassword());
+            String confirmPass = new String(txtConfirmPass.getPassword());
 
-        if (oldPass.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin mật khẩu!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+            if (oldPass.isEmpty() || newPass.isEmpty() || confirmPass.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin mật khẩu!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
-        if (!newPass.equals(confirmPass)) {
-            JOptionPane.showMessageDialog(this, "Mật khẩu mới và xác nhận không khớp!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+            if (!newPass.equals(confirmPass)) {
+                JOptionPane.showMessageDialog(this, "Mật khẩu mới và xác nhận không khớp!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
-        String oldHash = hashSHA256(oldPass);
-        String newHash = hashSHA256(newPass);
-        int userId = SessionUser.getCurrentUser().getUserId();
+            String oldHash = hashSHA256(oldPass);
+            String newHash = hashSHA256(newPass);
+            int userId = SessionUser.getCurrentUser().getUserId();
 
-        if (khachHangBUS.doiMatKhau(userId, oldHash, newHash)) {
-            JOptionPane.showMessageDialog(this, "Đổi mật khẩu thành công! Bạn có thể dùng mật khẩu mới ở lần đăng nhập sau.");
-            txtOldPass.setText(""); txtNewPass.setText(""); txtConfirmPass.setText("");
-        } else {
-            JOptionPane.showMessageDialog(this, "Mật khẩu hiện tại không đúng!", "Từ chối", JOptionPane.ERROR_MESSAGE);
+            if (khachHangBUS.doiMatKhau(userId, oldHash, newHash)) {
+                JOptionPane.showMessageDialog(this, "Đổi mật khẩu thành công! Bạn có thể dùng mật khẩu mới ở lần đăng nhập sau.");
+                txtOldPass.setText(""); txtNewPass.setText(""); txtConfirmPass.setText("");
+            } else {
+                JOptionPane.showMessageDialog(this, "Mật khẩu hiện tại không đúng!", "Từ chối", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Dữ liệu không hợp lệ", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 

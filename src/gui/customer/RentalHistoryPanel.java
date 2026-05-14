@@ -37,8 +37,7 @@ public class RentalHistoryPanel extends JPanel {
 
         String[] columns = {"Mã HĐ", "Tên Xe", "Ngày bắt đầu", "Ngày kết thúc", "Tổng Tiền", "Trạng thái"};
         tableModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
         table.setRowHeight(30);
@@ -50,26 +49,29 @@ public class RentalHistoryPanel extends JPanel {
     }
 
     public void loadData() {
-        tableModel.setRowCount(0);
+        try {
+            tableModel.setRowCount(0);
 
-        TaiKhoanDTO currentUser = SessionUser.getCurrentUser();
-        if (currentUser == null) return;
+            TaiKhoanDTO currentUser = SessionUser.getCurrentUser();
+            if (currentUser == null) return;
 
-        // Gọi trực tiếp hàm lấy hợp đồng theo User ID (Đảm bảo chính xác 100%)
-        ArrayList<HopDongDTO> userContracts = hopDongBUS.layHopDongTheoUser(currentUser.getUserId());
+            ArrayList<HopDongDTO> userContracts = hopDongBUS.layHopDongTheoUser(currentUser.getUserId());
 
-        for (HopDongDTO hd : userContracts) {
-            String startStr = hd.getRentalStart() != null ? dateFormat.format(hd.getRentalStart()) : "N/A";
-            String endStr = hd.getRentalEnd() != null ? dateFormat.format(hd.getRentalEnd()) : "N/A";
+            for (HopDongDTO hd : userContracts) {
+                String startStr = hd.getRentalStart() != null ? dateFormat.format(hd.getRentalStart()) : "N/A";
+                String endStr = hd.getRentalEnd() != null ? dateFormat.format(hd.getRentalEnd()) : "N/A";
 
-            tableModel.addRow(new Object[]{
-                    hd.getContractCode(),
-                    hd.getVehicleName(),
-                    startStr,
-                    endStr,
-                    String.format("%,.0f VNĐ", hd.getTotalAmount()),
-                    hd.getContractStatus()
-            });
+                tableModel.addRow(new Object[]{
+                        hd.getContractCode(),
+                        hd.getVehicleName(),
+                        startStr,
+                        endStr,
+                        String.format("%,.0f VNĐ", hd.getTotalAmount()),
+                        hd.getContractStatus()
+                });
+            }
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Không thể tải lịch sử thuê xe: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

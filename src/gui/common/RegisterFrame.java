@@ -151,41 +151,31 @@ public class RegisterFrame extends JFrame {
         add(registerPanel, new GridBagConstraints());
     }
 
+    // Thay thế logic đăng ký bên trong sự kiện click của btnRegister
     private void handleRegister() {
-        String username = txtUsername.getText().trim();
-        String password = new String(txtPassword.getPassword());
-        String rePassword = new String(txtRePassword.getPassword());
+        try {
+            String username = txtUsername.getText().trim();
+            String password = new String(txtPassword.getPassword());
+            String rePassword = new String(txtRePassword.getPassword());
 
-        // 1. Kiểm tra rỗng
-        if (username.isEmpty() || password.isEmpty() || rePassword.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng điền đầy đủ thông tin!",
-                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+            TaiKhoanDTO newAccount = new TaiKhoanDTO();
+            newAccount.setUsername(username);
 
-        // 2. Kiểm tra mật khẩu khớp nhau
-        if (!password.equals(rePassword)) {
-            JOptionPane.showMessageDialog(this, "Mật khẩu nhập lại không khớp!",
-                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+            // Truyền 3 tham số xuống BUS để kiểm tra
+            if (taiKhoanBUS.dangKy(newAccount, password, rePassword)) {
+                JOptionPane.showMessageDialog(this, "Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                this.dispose();
+                new LoginFrame().setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(this, "Đăng ký thất bại, không thể lưu vào CSDL!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
 
-        TaiKhoanDTO newAccount = new TaiKhoanDTO();
-        newAccount.setUsername(username);
-        newAccount.setPassword(password);
-
-        // Lưu ý: Nếu hàm dangKy trong BUS của bạn có tham số khác, hãy điều chỉnh lại cho khớp.
-        String message = taiKhoanBUS.dangKy(newAccount, rePassword, password);
-
-        if (message.equals("Đăng ký thành công!")) {
-            JOptionPane.showMessageDialog(this, message + " Vui lòng đăng nhập.",
-                    "Thành công", JOptionPane.INFORMATION_MESSAGE);
-
-            // Chuyển hướng về trang Đăng nhập
-            this.dispose();
-            new LoginFrame().setVisible(true);
-        } else {
-            JOptionPane.showMessageDialog(this, message, "Lỗi đăng ký", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            // Bắt lỗi: Trùng tên, pass ngắn, pass không khớp
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi Nhập Liệu", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException ex) {
+            // Bắt lỗi: Sập MySQL
+            JOptionPane.showMessageDialog(this, "Lỗi kết nối máy chủ: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 

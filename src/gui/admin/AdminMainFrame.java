@@ -45,14 +45,18 @@ public class AdminMainFrame extends JFrame {
         lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblTitle.setBorder(new EmptyBorder(0, 0, 30, 0));
 
-        // Menu
-        JButton btnBike = createMenuButton("1. Quản lý Xe");
-        JButton btnCustomer = createMenuButton("2. Quản lý Khách hàng");
-        JButton btnContract = createMenuButton("3. Quản lý Hợp đồng");
+        // Menu (Đã bổ sung Thống Kê và đánh lại số thứ tự)
+        JButton btnDashboard = createMenuButton("1. Thống kê");
+        JButton btnBike = createMenuButton("2. Quản lý Xe");
+        JButton btnCustomer = createMenuButton("3. Quản lý Khách hàng");
+        JButton btnContract = createMenuButton("4. Quản lý Hợp đồng");
         JButton btnLogout = createMenuButton("Đăng xuất");
         btnLogout.setForeground(new Color(255, 82, 82));
+
         // Thêm vào Sidebar
         sidebarPanel.add(lblTitle);
+        sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        sidebarPanel.add(btnDashboard); // Thêm Thống kê vào Menu
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         sidebarPanel.add(btnBike);
         sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -67,23 +71,30 @@ public class AdminMainFrame extends JFrame {
         mainContentPanel = new JPanel(cardLayout);
         mainContentPanel.setBackground(new Color(245, 247, 250));
 
-        // Khởi tạo các Panel con
+        // Khởi tạo các Panel con (Bổ sung StatisticPanel)
+        StatisticPanel statisticPanel = new StatisticPanel();
         BikeManagementPanel bikeManagementPanel = new BikeManagementPanel();
         CustomerManagementPanel customerManagementPanel = new CustomerManagementPanel();
         ContractManagementPanel contractPanel = new ContractManagementPanel();
 
         // Add vào CardLayout với tên định danh
+        mainContentPanel.add(statisticPanel, "Dashboard"); // Add Dashboard vào đầu tiên
         mainContentPanel.add(bikeManagementPanel, "Bike");
         mainContentPanel.add(customerManagementPanel, "Customer");
         mainContentPanel.add(contractPanel, "Contract");
 
         // ACTION CHO MENU CHUYỂN TRANG
+        btnDashboard.addActionListener(e -> cardLayout.show(mainContentPanel, "Dashboard"));
+
         btnBike.addActionListener(e -> cardLayout.show(mainContentPanel, "Bike"));
+
         btnCustomer.addActionListener(e -> {
             customerManagementPanel.loadDataFromDB(); // Kích hoạt tải lại dữ liệu mới nhất
             cardLayout.show(mainContentPanel, "Customer");
         });
+
         btnContract.addActionListener(e -> cardLayout.show(mainContentPanel, "Contract"));
+
         btnLogout.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
                     this,
@@ -94,7 +105,6 @@ public class AdminMainFrame extends JFrame {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 this.dispose();
-
                 new LoginFrame().setVisible(true);
             }
         });
@@ -102,9 +112,12 @@ public class AdminMainFrame extends JFrame {
         // Add vào Frame chính
         add(sidebarPanel, BorderLayout.WEST);
         add(mainContentPanel, BorderLayout.CENTER);
+
+        // Hiển thị Dashboard làm màn hình mặc định khi vừa mở form
+        cardLayout.show(mainContentPanel, "Dashboard");
     }
 
-    // tiện ích tạo nút Menu
+    // Tiện ích tạo nút Menu
     private JButton createMenuButton(String text) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -130,15 +143,5 @@ public class AdminMainFrame extends JFrame {
             }
         });
         return btn;
-    }
-
-    private JPanel createPlaceholderPanel(String text) {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(245, 247, 250));
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        label.setForeground(Color.GRAY);
-        panel.add(label);
-        return panel;
     }
 }

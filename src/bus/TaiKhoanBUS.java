@@ -12,22 +12,47 @@ public class TaiKhoanBUS {
     }
 
     public TaiKhoanDTO kiemTraDangNhap(String username, String password) {
-        // 1. Mã hóa mật khẩu người dùng nhập vào
-        String hashedInputPassword = SecurityHelper.hashPassword(password);
+        if (username == null || username.trim().isEmpty() || password == null || password.isEmpty()) {
+            throw new IllegalArgumentException("Tên đăng nhập và mật khẩu không được để trống.");
+        }
 
-        // 2. So sánh với database
-        return taiKhoanDAO.kiemTraDangNhap(username, hashedInputPassword);
+        String hashedInputPassword = SecurityHelper.hashPassword(password);
+        TaiKhoanDTO account = taiKhoanDAO.kiemTraDangNhap(username, hashedInputPassword);
+
+        if (account == null) {
+            throw new IllegalArgumentException("Sai tên đăng nhập hoặc mật khẩu.");
+        }
+
+        // Kiểm tra xem tài khoản có bị Admin khóa hay không
+        if ("BLOCKED".equalsIgnoreCase(account.getStatus()) || "INACTIVE".equalsIgnoreCase(account.getStatus())) {
+            throw new IllegalArgumentException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên.");
+        }
+
+        return account;
     }
 
-    public String dangKy(TaiKhoanDTO tk, String rePassword, String plainPassword) {
+    public boolean dangKy(TaiKhoanDTO tk, String plainPassword, String rePassword) {
+        if (tk.getUsername() == null || tk.getUsername().trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên đăng nhập không được để trống.");
+        }
+        if (plainPassword == null || plainPassword.isEmpty()) {
+            throw new IllegalArgumentException("Mật khẩu không được để trống.");
+        }
+        if (plainPassword.length() < 6) {
+            throw new IllegalArgumentException("Mật khẩu phải có ít nhất 6 ký tự để đảm bảo an toàn.");
+        }
+        if (!plainPassword.equals(rePassword)) {
+            throw new IllegalArgumentException("Mật khẩu nhập lại không khớp!");
+        }
+
+        // Chặn ngay từ BUS nếu trùng tên đăng nhập
+        if (taiKhoanDAO.kiemTraTonTaiUsername(tk.getUsername())) {
+            throw new IllegalArgumentException("Tên đăng nhập '" + tk.getUsername() + "' đã tồn tại! Vui lòng chọn tên khác.");
+        }
 
         String hashedPass = SecurityHelper.hashPassword(plainPassword);
-
         tk.setPassword(hashedPass);
 
-        if (taiKhoanDAO.themTaiKhoan(tk)) {
-            return "Đăng ký thành công!";
-        }
-        return "Đăng ký thất bại, lỗi hệ thống!";
+        return taiKhoanDAO.themTaiKhoan(tk);
     }
 }

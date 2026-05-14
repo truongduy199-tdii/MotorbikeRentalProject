@@ -135,41 +135,35 @@ public class LoginFrame extends JFrame {
         add(loginPanel, new GridBagConstraints());
     }
 
+    // Thay thế logic đăng nhập bên trong sự kiện click của btnLogin
     private void handleLogin() {
-        String username = txtUsername.getText().trim();
-        String password = new String(txtPassword.getPassword());
+        try {
+            String username = txtUsername.getText().trim();
+            String password = new String(txtPassword.getPassword());
 
-        if (username.isEmpty() || password.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!",
-                    "Cảnh báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+            // Đẩy xuống BUS xử lý, nếu có lỗi nó sẽ nhảy xuống khối catch
+            TaiKhoanDTO account = taiKhoanBUS.kiemTraDangNhap(username, password);
 
-        // Gọi xuống tầng BUS để kiểm tra thực tế trong CSDL
-        TaiKhoanDTO account = taiKhoanBUS.kiemTraDangNhap(username, password);
-
-        if (account != null) {
-            // Lưu thông tin người dùng vào Session để dùng cho các tính năng sau
             SessionUser.setCurrentUser(account);
-
-            /*JOptionPane.showMessageDialog(this, "Đăng nhập thành công! Xin chào " + account.getFullName(),
-                    "Thành công", JOptionPane.INFORMATION_MESSAGE);*/
 
             // Phân quyền chuyển trang
             if (account.getRole() != null && account.getRole().equalsIgnoreCase("ADMIN")) {
-                AdminMainFrame adminFrame = new AdminMainFrame();
+                gui.admin.AdminMainFrame adminFrame = new gui.admin.AdminMainFrame();
                 adminFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
                 adminFrame.setVisible(true);
             } else {
-                // Customer
-                CustomerMainFrame customerFrame = new CustomerMainFrame();
+                gui.customer.CustomerMainFrame customerFrame = new gui.customer.CustomerMainFrame();
                 customerFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
                 customerFrame.setVisible(true);
             }
-            this.dispose(); // Đóng form Login lại
-        } else {
-            JOptionPane.showMessageDialog(this, "Sai tên đăng nhập, mật khẩu hoặc tài khoản bị khóa!",
-                    "Lỗi Đăng Nhập", JOptionPane.ERROR_MESSAGE);
+            this.dispose(); // Đóng form Login
+
+        } catch (IllegalArgumentException ex) {
+            // Bắt lỗi: Sai pass, trống thông tin, TÀI KHOẢN BỊ KHÓA
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi Đăng Nhập", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException ex) {
+            // Bắt lỗi: Mất kết nối CSDL
+            JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Máy Chủ", JOptionPane.ERROR_MESSAGE);
         }
     }
 

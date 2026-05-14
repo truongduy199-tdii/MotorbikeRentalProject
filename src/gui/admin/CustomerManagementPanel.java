@@ -12,7 +12,6 @@ import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 public class CustomerManagementPanel extends JPanel {
@@ -31,14 +30,13 @@ public class CustomerManagementPanel extends JPanel {
     private JTextField txtCustomerId, txtFullName, txtPhone, txtEmail, txtCccd, txtBirthday, txtAddress, txtDriverLicense;
     private JComboBox<String> cbStatusInput;
 
-    private boolean isEditMode = false;
     private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 
     public CustomerManagementPanel() {
         khachHangBUS = new KhachHangBUS();
 
         setLayout(new BorderLayout(20, 20));
-        setBackground(new Color(245, 247, 250)); // Màu nền tổng thể giống BikePanel
+        setBackground(new Color(245, 247, 250));
         setBorder(new EmptyBorder(20, 20, 20, 20));
 
         initComponents();
@@ -68,7 +66,7 @@ public class CustomerManagementPanel extends JPanel {
         txtSearch = new JTextField();
         txtSearch.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Tên, SĐT hoặc CCCD...");
 
-        String[] statusSearch = {"Tất cả trạng thái", "ACTIVE", "INACTIVE"};
+        String[] statusSearch = {"Tất cả trạng thái", "ACTIVE", "BLOCKED"};
         cbStatusFilter = new JComboBox<>(statusSearch);
 
         btnSearch = createActionButton("Tìm", new Color(25, 118, 210));
@@ -83,27 +81,24 @@ public class CustomerManagementPanel extends JPanel {
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actionPanel.setOpaque(false);
 
-        JButton btnAdd = createActionButton("Thêm KH", new Color(46, 125, 50));
         JButton btnEdit = createActionButton("Sửa", new Color(237, 108, 2));
-        JButton btnDelete = createActionButton("Xóa", new Color(211, 47, 47));
+        JButton btnLock = createActionButton("Khóa", new Color(211, 47, 47)); // Đổi tên thành Khóa
         JButton btnRefresh = createActionButton("Làm mới", new Color(117, 117, 117));
 
-        btnAdd.addActionListener(e -> {
-            isEditMode = false;
+        btnEdit.addActionListener(e -> handlePrepareEdit());
+        btnLock.addActionListener(e -> handleLockCustomer());
+
+        // Cập nhật tính năng nút Làm Mới
+        btnRefresh.addActionListener(e -> {
+            txtSearch.setText("");
+            cbStatusFilter.setSelectedIndex(0);
             clearInputFields();
-            txtCustomerId.setEnabled(true);
-            inputPanel.setBorder(BorderFactory.createTitledBorder("Thêm thông tin khách hàng mới"));
-            inputPanel.setVisible(true);
-            revalidate();
+            inputPanel.setVisible(false);
+            loadDataFromDB();
         });
 
-        btnEdit.addActionListener(e -> handlePrepareEdit());
-        btnDelete.addActionListener(e -> handleDeleteCustomer());
-        btnRefresh.addActionListener(e -> loadDataFromDB());
-
-        actionPanel.add(btnAdd);
         actionPanel.add(btnEdit);
-        actionPanel.add(btnDelete);
+        actionPanel.add(btnLock);
         actionPanel.add(btnRefresh);
 
         topPanel.add(searchPanel);
@@ -118,7 +113,6 @@ public class CustomerManagementPanel extends JPanel {
 
         tblCustomers = new JTable(tableModel);
 
-        // Style cho Table y hệt BikeManagementPanel
         tblCustomers.setRowHeight(35);
         tblCustomers.setShowVerticalLines(false);
         tblCustomers.setGridColor(new Color(230, 230, 230));
@@ -127,7 +121,6 @@ public class CustomerManagementPanel extends JPanel {
         tblCustomers.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         tblCustomers.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        // Tùy chỉnh Header
         JTableHeader header = tblCustomers.getTableHeader();
         header.setPreferredSize(new Dimension(100, 40));
         header.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -136,17 +129,15 @@ public class CustomerManagementPanel extends JPanel {
         header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(200, 200, 200)));
         header.setOpaque(true);
 
-        // Căn giữa một số cột
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        tblCustomers.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // Mã KH
-        tblCustomers.getColumnModel().getColumn(2).setCellRenderer(centerRenderer); // SĐT
-        tblCustomers.getColumnModel().getColumn(4).setCellRenderer(centerRenderer); // CCCD
-        tblCustomers.getColumnModel().getColumn(5).setCellRenderer(centerRenderer); // Ngày Sinh
-        tblCustomers.getColumnModel().getColumn(7).setCellRenderer(centerRenderer); // Bằng Lái
-        tblCustomers.getColumnModel().getColumn(8).setCellRenderer(centerRenderer); // Trạng Thái
+        tblCustomers.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        tblCustomers.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+        tblCustomers.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+        tblCustomers.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
+        tblCustomers.getColumnModel().getColumn(7).setCellRenderer(centerRenderer);
+        tblCustomers.getColumnModel().getColumn(8).setCellRenderer(centerRenderer);
 
-        // Set width cho cột
         tblCustomers.getColumnModel().getColumn(0).setPreferredWidth(60);
         tblCustomers.getColumnModel().getColumn(1).setPreferredWidth(160);
         tblCustomers.getColumnModel().getColumn(6).setPreferredWidth(200);
@@ -171,7 +162,7 @@ public class CustomerManagementPanel extends JPanel {
     private void initInputPanel() {
         inputPanel = new JPanel(new GridBagLayout());
         inputPanel.setBackground(Color.WHITE);
-        inputPanel.setBorder(BorderFactory.createTitledBorder("Thông tin khách hàng"));
+        inputPanel.setBorder(BorderFactory.createTitledBorder("Sửa thông tin khách hàng"));
         inputPanel.setVisible(false);
 
         GridBagConstraints gbc = new GridBagConstraints();
@@ -179,56 +170,53 @@ public class CustomerManagementPanel extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         txtCustomerId = new JTextField(10);
+        txtCustomerId.setEnabled(false); // Luôn luôn không cho sửa Mã KH
         txtFullName = new JTextField(15);
         txtPhone = new JTextField(10);
         txtEmail = new JTextField(15);
         txtCccd = new JTextField(10);
-        txtBirthday = new JTextField(10); // Format: dd/MM/yyyy
+        txtBirthday = new JTextField(10);
         txtBirthday.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/MM/yyyy");
         txtDriverLicense = new JTextField(10);
         txtAddress = new JTextField(20);
-        cbStatusInput = new JComboBox<>(new String[]{"ACTIVE", "INACTIVE"});
+        cbStatusInput = new JComboBox<>(new String[]{"ACTIVE", "BLOCKED"});
 
         JButton btnSave = createActionButton("Lưu dữ liệu", new Color(46, 125, 50));
         JButton btnCancel = createActionButton("Hủy", Color.GRAY);
 
-        // Hàng 1
         gbc.gridx = 0; gbc.gridy = 0; inputPanel.add(new JLabel("Mã KH:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtCustomerId, gbc);
         gbc.gridx = 2; inputPanel.add(new JLabel("Họ tên:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtFullName, gbc);
 
-        // Hàng 2
         gbc.gridx = 0; gbc.gridy = 1; inputPanel.add(new JLabel("SĐT:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtPhone, gbc);
         gbc.gridx = 2; inputPanel.add(new JLabel("Email:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtEmail, gbc);
 
-        // Hàng 3
         gbc.gridx = 0; gbc.gridy = 2; inputPanel.add(new JLabel("CCCD:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtCccd, gbc);
         gbc.gridx = 2; inputPanel.add(new JLabel("Ngày sinh:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtBirthday, gbc);
 
-        // Hàng 4
         gbc.gridx = 0; gbc.gridy = 3; inputPanel.add(new JLabel("Bằng lái:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtDriverLicense, gbc);
         gbc.gridx = 2; inputPanel.add(new JLabel("Trạng thái:"), gbc);
         gbc.gridx = 3; inputPanel.add(cbStatusInput, gbc);
 
-        // Hàng 5 - Địa chỉ chiếm nhiều khoảng trống hơn
         gbc.gridx = 0; gbc.gridy = 4; inputPanel.add(new JLabel("Địa chỉ:"), gbc);
         gbc.gridx = 1; gbc.gridwidth = 3; inputPanel.add(txtAddress, gbc);
-        gbc.gridwidth = 1; // Reset lại gridwidth
+        gbc.gridwidth = 1;
 
-        // Hàng 6 - Nút bấm
         gbc.gridx = 3; gbc.gridy = 5;
         JPanel btnGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnGroup.add(btnCancel); btnGroup.add(btnSave);
         inputPanel.add(btnGroup, gbc);
 
-        // Events
-        btnCancel.addActionListener(e -> inputPanel.setVisible(false));
+        btnCancel.addActionListener(e -> {
+            clearInputFields();
+            inputPanel.setVisible(false);
+        });
         btnSave.addActionListener(e -> handleSaveCustomer());
     }
 
@@ -243,16 +231,14 @@ public class CustomerManagementPanel extends JPanel {
     }
 
     public void loadDataFromDB() {
-        tableModel.setRowCount(0);
-        List<KhachHangDTO> list = khachHangBUS.getAllCustomers();
-
-        if (list == null) {
-            JOptionPane.showMessageDialog(this, "Không thể tải dữ liệu Khách hàng. Vui lòng kiểm tra lại kết nối Cơ sở dữ liệu!", "Lỗi kết nối", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        for (KhachHangDTO kh : list) {
-            addRowToTable(kh);
+        try {
+            tableModel.setRowCount(0);
+            List<KhachHangDTO> list = khachHangBUS.getAllCustomers();
+            for (KhachHangDTO kh : list) {
+                addRowToTable(kh);
+            }
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Không thể tải dữ liệu Khách hàng.\nChi tiết: " + ex.getMessage(), "Lỗi kết nối", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -273,31 +259,28 @@ public class CustomerManagementPanel extends JPanel {
     }
 
     private void handleSearch() {
-        String keyword = txtSearch.getText().trim().toLowerCase();
-        String status = cbStatusFilter.getSelectedItem().toString();
+        try {
+            String keyword = txtSearch.getText().trim();
+            String status = cbStatusFilter.getSelectedItem().toString();
 
-        tableModel.setRowCount(0);
-        List<KhachHangDTO> list = khachHangBUS.getAllCustomers();
+            List<KhachHangDTO> list = khachHangBUS.timKiemKhachHang(keyword, status);
+            tableModel.setRowCount(0);
 
-        if (list == null) return;
-
-        for (KhachHangDTO kh : list) {
-            boolean matchKey = keyword.isEmpty() ||
-                    kh.getFullName().toLowerCase().contains(keyword) ||
-                    kh.getPhone().contains(keyword) ||
-                    kh.getCccd().contains(keyword);
-
-            boolean matchStatus = status.equals("Tất cả trạng thái") || kh.getStatus().equalsIgnoreCase(status);
-
-            if (matchKey && matchStatus) {
+            for (KhachHangDTO kh : list) {
                 addRowToTable(kh);
             }
+
+            if (list.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy khách hàng nào phù hợp.", "Kết quả", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void handleSaveCustomer() {
         try {
-            String idStr = txtCustomerId.getText().trim(); // Đổi tên biến thành idStr cho rõ ràng
+            int id = Integer.parseInt(txtCustomerId.getText().trim());
             String name = txtFullName.getText().trim();
             String phone = txtPhone.getText().trim();
             String email = txtEmail.getText().trim();
@@ -305,35 +288,9 @@ public class CustomerManagementPanel extends JPanel {
             String address = txtAddress.getText().trim();
             String driverLicense = txtDriverLicense.getText().trim();
             String status = cbStatusInput.getSelectedItem().toString();
-            String dobStr = txtBirthday.getText().trim();
-
-            if (idStr.isEmpty() || name.isEmpty() || phone.isEmpty() || cccd.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ Mã, Tên, SĐT và CCCD!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            // --- KIỂM TRA VÀ ÉP KIỂU MÃ KHÁCH HÀNG SANG INT ---
-            int id;
-            try {
-                id = Integer.parseInt(idStr);
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Mã khách hàng phải là một số nguyên hợp lệ!", "Lỗi nhập liệu", JOptionPane.ERROR_MESSAGE);
-                return; // Dừng lại, không chạy tiếp nếu lỗi
-            }
-            // --------------------------------------------------
-
-            Date birthday = null;
-            if (!dobStr.isEmpty()) {
-                try {
-                    birthday = sdf.parse(dobStr);
-                } catch (ParseException e) {
-                    JOptionPane.showMessageDialog(this, "Ngày sinh không đúng định dạng (dd/MM/yyyy)!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
 
             KhachHangDTO kh = new KhachHangDTO();
-            kh.setCustomerId(id); // <--- Đã sửa ở đây, truyền biến 'id' kiểu int vào
+            kh.setCustomerId(id);
             kh.setFullName(name);
             kh.setPhone(phone);
             kh.setEmail(email);
@@ -341,14 +298,29 @@ public class CustomerManagementPanel extends JPanel {
             kh.setAddress(address);
             kh.setDriverLicenseNumber(driverLicense);
             kh.setStatus(status);
-            kh.setBirthday(new java.sql.Date(birthday.getTime()));
 
-            // Giả lập lưu
-            JOptionPane.showMessageDialog(this, isEditMode ? "Giả lập sửa thành công!" : "Giả lập thêm thành công!");
-            inputPanel.setVisible(false);
+            String dobStr = txtBirthday.getText().trim();
+            if (!dobStr.isEmpty()) {
+                kh.setBirthday(new java.sql.Date(sdf.parse(dobStr).getTime()));
+            }
 
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Có lỗi xảy ra: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            if (khachHangBUS.suaKhachHang(kh)) {
+                JOptionPane.showMessageDialog(this, "Cập nhật thông tin khách hàng thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                clearInputFields();
+                inputPanel.setVisible(false);
+                loadDataFromDB();
+            } else {
+                JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Mã khách hàng phải là một số nguyên hợp lệ!", "Lỗi nhập liệu", JOptionPane.ERROR_MESSAGE);
+        } catch (ParseException e) {
+            JOptionPane.showMessageDialog(this, "Ngày sinh không đúng định dạng (dd/MM/yyyy)!", "Lỗi định dạng", JOptionPane.WARNING_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Dữ liệu không hợp lệ", JOptionPane.WARNING_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi hệ thống CSDL: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -359,12 +331,7 @@ public class CustomerManagementPanel extends JPanel {
             return;
         }
 
-        isEditMode = true;
-        inputPanel.setBorder(BorderFactory.createTitledBorder("Sửa thông tin khách hàng"));
-
         txtCustomerId.setText(tableModel.getValueAt(selectedRow, 0).toString());
-        txtCustomerId.setEnabled(false); // Không cho sửa Mã
-
         txtFullName.setText(tableModel.getValueAt(selectedRow, 1).toString());
         txtPhone.setText(tableModel.getValueAt(selectedRow, 2).toString());
 
@@ -388,27 +355,31 @@ public class CustomerManagementPanel extends JPanel {
         revalidate();
     }
 
-    private void handleDeleteCustomer() {
+    private void handleLockCustomer() {
         int selectedRow = tblCustomers.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một khách hàng trong bảng để xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn một khách hàng trong bảng để khóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String id = tableModel.getValueAt(selectedRow, 0).toString();
-        String name = tableModel.getValueAt(selectedRow, 1).toString();
+        try {
+            int id = Integer.parseInt(tableModel.getValueAt(selectedRow, 0).toString());
+            String name = tableModel.getValueAt(selectedRow, 1).toString();
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Xác nhận xóa khách hàng: " + name + " (" + id + ")?", "Xác nhận", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            /* MỤC NÀY CẦN CÓ PHƯƠNG THỨC TRONG KhachHangBUS
-            if (khachHangBUS.xoaKhachHang(id)) {
-                JOptionPane.showMessageDialog(this, "Xóa thành công!");
-                loadDataFromDB();
-            } else {
-                JOptionPane.showMessageDialog(this, "Xóa thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn khóa khách hàng: " + name + " (" + id + ")?\nHành động này sẽ vô hiệu hóa tài khoản của họ.", "Xác nhận", JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                if (khachHangBUS.xoaKhachHang(id)) {
+                    JOptionPane.showMessageDialog(this, "Đã khóa khách hàng thành công!");
+                    clearInputFields();
+                    inputPanel.setVisible(false);
+                    loadDataFromDB();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Khóa thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
             }
-            */
-            JOptionPane.showMessageDialog(this, "Giả lập xóa thành công!");
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "Lỗi khi tương tác CSDL: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 

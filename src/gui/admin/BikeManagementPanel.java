@@ -55,7 +55,7 @@ public class BikeManagementPanel extends JPanel {
         txtSearch = new JTextField();
         txtSearch.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Mã, tên hoặc biển số...");
 
-        String[] statusSearch = {"Tất cả trạng thái", "AVAILABLE", "RENTED", "MAINTENANCE"};
+        String[] statusSearch = {"Tất cả trạng thái", "AVAILABLE", "RENTED", "MAINTENANCE", "DELETED"};
         cbStatusFilter = new JComboBox<>(statusSearch);
 
         btnSearch = createActionButton("Tìm", new Color(25, 118, 210));
@@ -198,31 +198,40 @@ public class BikeManagementPanel extends JPanel {
     }
 
     private void loadDataFromDB() {
-        tableModel.setRowCount(0);
-        ArrayList<XeMayDTO> listXe = xeMayBUS.layDanhSachXeMay();
-        for (XeMayDTO xe : listXe) {
-            addRowToTable(xe);
+        try {
+            tableModel.setRowCount(0);
+            ArrayList<XeMayDTO> listXe = xeMayBUS.layDanhSachXeMay();
+            for (XeMayDTO xe : listXe) {
+                addRowToTable(xe);
+            }
+        } catch (RuntimeException ex) {
+            // Bắt lỗi nếu vừa mở ứng dụng lên mà chưa bật MySQL (XAMPP)
+            JOptionPane.showMessageDialog(this, "Không thể kết nối đến cơ sở dữ liệu để tải danh sách xe.\nVui lòng kiểm tra lại kết nối mạng hoặc XAMPP.", "Lỗi khởi tạo", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void handleSearch() {
-        String keyword = txtSearch.getText().trim().toLowerCase();
-        String status = cbStatusFilter.getSelectedItem().toString();
+        try {
+            // Chỉ việc lấy từ khóa
+            String keyword = txtSearch.getText().trim();
+            String status = cbStatusFilter.getSelectedItem().toString();
 
-        tableModel.setRowCount(0);
-        ArrayList<XeMayDTO> listXe = xeMayBUS.layDanhSachXeMay();
+            // Đẩy xuống BUS và nhận về danh sách ĐÃ ĐƯỢC LỌC TỪ MYSQL
+            ArrayList<XeMayDTO> listXe = xeMayBUS.timKiemXeMay(keyword, status);
 
-        for (XeMayDTO xe : listXe) {
-            boolean matchKey = keyword.isEmpty() ||
-                    xe.getVehicleCode().toLowerCase().contains(keyword) ||
-                    xe.getVehicleName().toLowerCase().contains(keyword) ||
-                    xe.getLicensePlate().toLowerCase().contains(keyword);
-
-            boolean matchStatus = status.equals("Tất cả trạng thái") || xe.getStatus().equals(status);
-
-            if (matchKey && matchStatus) {
+            tableModel.setRowCount(0); // Xóa bảng cũ
+            for (XeMayDTO xe : listXe) {
                 addRowToTable(xe);
             }
+
+            // Tùy chọn: Báo cho người dùng nếu không tìm thấy xe nào
+            if (listXe.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy xe máy nào phù hợp với điều kiện tìm kiếm.", "Kết quả", JOptionPane.INFORMATION_MESSAGE);
+            }
+
+        } catch (RuntimeException ex) {
+            // Bắt lỗi nếu mất kết nối CSDL trong lúc tìm kiếm
+            JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -255,27 +264,20 @@ public class BikeManagementPanel extends JPanel {
 
     private void handleAddBike() {
         try {
+            // 1. Thu thập dữ liệu từ các trường nhập liệu
             String code = txtBikeCode.getText().trim();
             String name = txtBikeName.getText().trim();
             String plate = txtPlate.getText().trim();
             String color = txtColor.getText().trim();
             int year = Integer.parseInt(txtYear.getText().trim());
             double priceDay = Double.parseDouble(txtPriceDay.getText().trim());
-            // Đã xóa priceHour
             String status = cbStatusInput.getSelectedItem().toString();
 
-            if(code.isEmpty() || name.isEmpty() || plate.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ các trường bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
+            // Xử lý logic khóa trạng thái RENTED (Giữ nguyên vì liên quan đến thao tác chọn trên Table của GUI)
             if (isEditMode) {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow != -1) {
-                    // Cột 6 là cột Trạng thái
                     String oldStatus = tableModel.getValueAt(selectedRow, 6).toString();
-
-                    // FIX LỖ HỔNG: Nếu xe đang RENTED thì cấm đổi sang TẤT CẢ các trạng thái khác
                     if (oldStatus.equals("RENTED") && !status.equals("RENTED")) {
                         JOptionPane.showMessageDialog(this,
                                 "Xe đang được khách thuê (RENTED).\nKhông thể tự ý đổi sang trạng thái " + status + "!\nVui lòng kết thúc/thanh lý hợp đồng của xe này trước.",
@@ -286,9 +288,11 @@ public class BikeManagementPanel extends JPanel {
                 }
             }
 
+            // Tách Brand và Model từ Tên xe
             String brand = name.contains(" ") ? name.substring(0, name.indexOf(" ")) : name;
             String model = name.contains(" ") ? name.substring(name.indexOf(" ") + 1) : "";
 
+            // 2. Gói dữ liệu vào DTO
             XeMayDTO xe = new XeMayDTO();
             xe.setVehicleCode(code);
             xe.setBrand(brand);
@@ -297,34 +301,42 @@ public class BikeManagementPanel extends JPanel {
             xe.setColor(color);
             xe.setManufactureYear(year);
             xe.setRentalPricePerDay(priceDay);
-            // Đã xóa xe.setRentalPricePerHour(priceHour);
             xe.setStatus(status);
 
+            // 3. Gọi BUS xử lý. Các lỗi nghiệp vụ sẽ bị ném ra và nhảy thẳng xuống khối catch
             if (!isEditMode) {
                 if (xeMayBUS.themXeMay(xe)) {
-                    JOptionPane.showMessageDialog(this, "Thêm xe thành công!");
+                    JOptionPane.showMessageDialog(this, "Thêm xe thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                     inputPanel.setVisible(false);
                     loadDataFromDB();
                 } else {
-                    // Cập nhật lại câu báo lỗi cho sát với thực tế DB
-                    JOptionPane.showMessageDialog(this,
-                            "Lỗi thêm xe! Vui lòng kiểm tra lại:\n" +
-                                    "1. Mã xe hoặc Biển số xe đã bị trùng.\n" +
-                                    "2. Năm sản xuất phải >= 2000.\n" +
-                                    "3. Giá thuê phải > 0.",
-                            "Lỗi thao tác CSDL", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Không thể thêm xe. Vui lòng kiểm tra lại (có thể trùng mã xe hoặc biển số).", "Lỗi thao tác", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
                 if (xeMayBUS.suaXeMay(xe)) {
-                    JOptionPane.showMessageDialog(this, "Cập nhật xe thành công!");
+                    JOptionPane.showMessageDialog(this, "Cập nhật xe thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                     inputPanel.setVisible(false);
                     loadDataFromDB();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Cập nhật thất bại!", "Lỗi thao tác", JOptionPane.ERROR_MESSAGE);
                 }
             }
+
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Năm sản xuất và Giá phải là số hợp lệ!", "Lỗi nhập liệu", JOptionPane.ERROR_MESSAGE);
+            // Bắt lỗi khi người dùng nhập chữ vào ô Năm sản xuất hoặc Giá thuê
+            JOptionPane.showMessageDialog(this, "Năm sản xuất và Giá thuê phải là số hợp lệ!", "Lỗi định dạng", JOptionPane.WARNING_MESSAGE);
+
+        } catch (IllegalArgumentException ex) {
+            // Bắt các lỗi nghiệp vụ từ XeMayBUS ném lên (VD: Giá <= 0, Mã rỗng, Năm < 2000...)
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Dữ liệu không hợp lệ", JOptionPane.WARNING_MESSAGE);
+
+        } catch (RuntimeException ex) {
+            // Bắt các lỗi sâu hơn từ tầng DAO ném lên (VD: Lỗi kết nối CSDL MySQLConnect)
+            JOptionPane.showMessageDialog(this, "Lỗi hệ thống: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
+
+        } catch (Exception ex) {
+            // Bắt các lỗi không xác định khác để chương trình không bị crash
+            JOptionPane.showMessageDialog(this, "Đã xảy ra lỗi không xác định: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
 

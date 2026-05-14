@@ -7,11 +7,83 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 
 public class XeMayDAO {
+    // Thêm hàm này vào trong class XeMayDAO
+    public ArrayList<XeMayDTO> timKiemXeMay(String keyword, String status) {
+        ArrayList<XeMayDTO> list = new ArrayList<>();
+
+        // Sử dụng StringBuilder để linh hoạt nối chuỗi SQL tùy thuộc vào điều kiện tìm kiếm
+        StringBuilder sql = new StringBuilder(
+                "SELECT v.vehicle_id, v.vehicle_code, v.brand, v.model, CONCAT(v.brand, ' ', v.model) AS vehicle_name, " +
+                        "v.license_plate, v.color, v.manufacture_year, v.rental_price_per_day, v.status, " +
+                        "(SELECT c.phone FROM RENTAL_CONTRACTS r " +
+                        " JOIN CUSTOMERS c ON r.customer_id = c.customer_id " +
+                        " WHERE r.vehicle_id = v.vehicle_id AND r.contract_status = 'ACTIVE' " +
+                        " ORDER BY r.contract_id DESC LIMIT 1) AS renter_phone " +
+                        "FROM VEHICLES v WHERE 1=1 "
+        );
+
+        // Nối thêm điều kiện Keyword nếu người dùng có nhập
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (LOWER(v.vehicle_code) LIKE ? OR LOWER(CONCAT(v.brand, ' ', v.model)) LIKE ? OR LOWER(v.license_plate) LIKE ?) ");
+        }
+
+        // Nối thêm điều kiện Trạng thái nếu người dùng chọn trạng thái cụ thể
+        if (status != null && !status.equals("Tất cả trạng thái")) {
+            sql.append(" AND v.status = ? ");
+        }
+
+        sql.append(" ORDER BY v.vehicle_code ASC");
+
+        try (Connection conn = MySQLConnect.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            int paramIndex = 1;
+
+            // Truyền giá trị cho các dấu ? trong câu SQL
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String searchKey = "%" + keyword.trim().toLowerCase() + "%";
+                ps.setString(paramIndex++, searchKey); // Cho mã xe
+                ps.setString(paramIndex++, searchKey); // Cho tên xe
+                ps.setString(paramIndex++, searchKey); // Cho biển số
+            }
+
+            if (status != null && !status.equals("Tất cả trạng thái")) {
+                ps.setString(paramIndex++, status);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    XeMayDTO xe = new XeMayDTO();
+                    xe.setVehicleId(rs.getInt("vehicle_id"));
+                    xe.setVehicleCode(rs.getString("vehicle_code"));
+                    xe.setBrand(rs.getString("brand"));
+                    xe.setModel(rs.getString("model"));
+                    xe.setVehicleName(rs.getString("vehicle_name"));
+                    xe.setLicensePlate(rs.getString("license_plate"));
+                    xe.setColor(rs.getString("color"));
+                    xe.setManufactureYear(rs.getInt("manufacture_year"));
+                    xe.setRentalPricePerDay(rs.getDouble("rental_price_per_day"));
+
+                    String dbStatus = rs.getString("status");
+                    xe.setStatus(dbStatus);
+                    if ("RENTED".equals(dbStatus)) {
+                        xe.setRenterPhone(rs.getString("renter_phone"));
+                    } else {
+                        xe.setRenterPhone(null);
+                    }
+                    list.add(xe);
+                }
+            }
+        } catch (Exception e) {
+            // Ném lỗi lên trên để GUI bắt và hiển thị JOptionPane
+            throw new RuntimeException("Lỗi truy vấn tìm kiếm cơ sở dữ liệu: " + e.getMessage(), e);
+        }
+        return list;
+    }
 
     public ArrayList<XeMayDTO> layDanhSachXeMay() {
-        ArrayList<XeMayDTO> list = new ArrayList<>(); // Dùng chung biến list của Nam
+        ArrayList<XeMayDTO> list = new ArrayList<>();
 
-        // KẾT HỢP SQL: Gộp subquery lấy SĐT (Long) và chọn cột/sắp xếp (Nam)
         String sql = "SELECT v.vehicle_id, v.vehicle_code, v.brand, v.model, CONCAT(v.brand, ' ', v.model) AS vehicle_name, " +
                 "v.license_plate, v.color, v.manufacture_year, v.rental_price_per_day, v.status, " +
                 "(SELECT c.phone FROM RENTAL_CONTRACTS r " +
@@ -26,8 +98,6 @@ public class XeMayDAO {
 
             while (rs.next()) {
                 XeMayDTO xe = new XeMayDTO();
-
-                // Các trường cơ bản (Của Nam)
                 xe.setVehicleId(rs.getInt("vehicle_id"));
                 xe.setVehicleCode(rs.getString("vehicle_code"));
                 xe.setBrand(rs.getString("brand"));
@@ -35,28 +105,25 @@ public class XeMayDAO {
                 xe.setVehicleName(rs.getString("vehicle_name"));
                 xe.setLicensePlate(rs.getString("license_plate"));
                 xe.setColor(rs.getString("color"));
-                xe.setManufactureYear(rs.getInt("manufacture_year")); // Của cả 2
+                xe.setManufactureYear(rs.getInt("manufacture_year"));
 
-                // Logic giá tiền (Của Nam)
                 double pricePerDay = rs.getDouble("rental_price_per_day");
                 xe.setRentalPricePerDay(pricePerDay);
                 xe.setRentalPricePerHour(pricePerDay / 10);
 
-                // Logic trạng thái
                 String status = rs.getString("status");
                 xe.setStatus(status);
 
-                // Logic SĐT khách thuê (Của Long)
                 if ("RENTED".equals(status)) {
                     xe.setRenterPhone(rs.getString("renter_phone"));
                 } else {
-                    xe.setRenterPhone(null); // File DTO tự động hiển thị "---"
+                    xe.setRenterPhone(null);
                 }
-
                 list.add(xe);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // THAY THẾ e.printStackTrace() bằng việc ném ngoại lệ
+            throw new RuntimeException("Lỗi khi lấy danh sách xe máy từ CSDL: " + e.getMessage(), e);
         }
         return list;
     }
@@ -70,7 +137,7 @@ public class XeMayDAO {
             ps.setString(3, xe.getModel());
             ps.setString(4, xe.getLicensePlate());
             ps.setString(5, xe.getColor());
-            ps.setInt(6, 2022);
+            ps.setInt(6, xe.getManufactureYear());
             ps.setDouble(7, xe.getRentalPricePerDay());
             ps.setString(8, xe.getStatus());
             return ps.executeUpdate() > 0;
@@ -85,7 +152,7 @@ public class XeMayDAO {
             ps.setString(2, xe.getModel());
             ps.setString(3, xe.getLicensePlate());
             ps.setString(4, xe.getColor());
-            ps.setInt(5, 2022);
+            ps.setInt(6, xe.getManufactureYear());
             ps.setDouble(6, xe.getRentalPricePerDay());
             ps.setString(7, xe.getStatus());
             ps.setString(8, xe.getVehicleCode());
