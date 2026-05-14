@@ -74,7 +74,6 @@ public class BikeManagementPanel extends JPanel {
 
         JButton btnAdd = createActionButton("Thêm xe", new Color(46, 125, 50));
         JButton btnEdit = createActionButton("Sửa", new Color(237, 108, 2));
-        JButton btnDelete = createActionButton("Xóa", new Color(211, 47, 47));
         JButton btnRefresh = createActionButton("Làm mới", new Color(117, 117, 117));
 
         btnAdd.addActionListener(e -> {
@@ -88,8 +87,6 @@ public class BikeManagementPanel extends JPanel {
 
         btnEdit.addActionListener(e -> handlePrepareEdit());
 
-        btnDelete.addActionListener(e -> handleDeleteBike());
-
         btnRefresh.addActionListener(e -> {
             txtSearch.setText("");              // Làm sạch thanh tìm kiếm
             cbStatusFilter.setSelectedIndex(0); // Đưa ComboBox trạng thái về "Tất cả trạng thái"
@@ -98,7 +95,6 @@ public class BikeManagementPanel extends JPanel {
 
         actionPanel.add(btnAdd);
         actionPanel.add(btnEdit);
-        actionPanel.add(btnDelete);
         actionPanel.add(btnRefresh);
 
         topPanel.add(searchPanel);
@@ -172,7 +168,7 @@ public class BikeManagementPanel extends JPanel {
         txtYear = new JTextField(5);
         txtPriceDay = new JTextField(10);
         txtPriceHour = new JTextField(10);
-        cbStatusInput = new JComboBox<>(new String[]{"AVAILABLE", "MAINTENANCE"});
+        cbStatusInput = new JComboBox<>(new String[]{"AVAILABLE", "MAINTENANCE", "DELETED"});
 
         JButton btnSave = createActionButton("Lưu dữ liệu", new Color(46, 125, 50));
         JButton btnCancel = createActionButton("Hủy", Color.GRAY);
@@ -288,6 +284,22 @@ public class BikeManagementPanel extends JPanel {
                 return;
             }
 
+            if (isEditMode) {
+                int selectedRow = table.getSelectedRow();
+                if (selectedRow != -1) {
+                    // Cột số 7 trong tableModel của bạn chính là cột Trạng thái
+                    String oldStatus = tableModel.getValueAt(selectedRow, 7).toString();
+
+                    if (oldStatus.equals("RENTED") && status.equals("DELETED")) {
+                        JOptionPane.showMessageDialog(this,
+                                "Không thể thanh lý xe đang trong quá trình cho thuê. Vui lòng thanh lý hợp đồng trước!",
+                                "Cảnh báo bảo toàn dữ liệu",
+                                JOptionPane.WARNING_MESSAGE);
+                        return; // Dừng lại, không chạy code update phía dưới nữa
+                    }
+                }
+            }
+
             // Tách Hãng xe (Brand) và Dòng xe (Model) từ Tên xe
             String brand = name.contains(" ") ? name.substring(0, name.indexOf(" ")) : name;
             String model = name.contains(" ") ? name.substring(name.indexOf(" ") + 1) : "";
@@ -356,27 +368,6 @@ public class BikeManagementPanel extends JPanel {
 
         inputPanel.setVisible(true);
         revalidate();
-    }
-
-    private void handleDeleteBike() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn một xe trong bảng để xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        String vehicleCode = tableModel.getValueAt(selectedRow, 0).toString();
-        String vehicleName = tableModel.getValueAt(selectedRow, 1).toString();
-
-        int confirm = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn xóa xe: " + vehicleName + " (" + vehicleCode + ")?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (xeMayBUS.xoaXeMay(vehicleCode)) {
-                JOptionPane.showMessageDialog(this, "Xóa thành công!");
-                loadDataFromDB();
-            } else {
-                JOptionPane.showMessageDialog(this, "Xóa thất bại! Xe có thể đang được thuê (dính khóa ngoại).", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        }
     }
 
     private void clearInputFields() {
