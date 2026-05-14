@@ -21,10 +21,6 @@ public class XeMayBUS {
         return xeMayDAO.suaXeMay(xe);
     }
 
-    public boolean xoaXeMay(String vehicleCode) {
-        return xeMayDAO.xoaXeMay(vehicleCode);
-    }
-
     public ArrayList<XeMayDTO> layDanhSachXeMay() {
         return xeMayDAO.layDanhSachXeMay();
     }

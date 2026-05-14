@@ -7,9 +7,9 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 
 public class XeMayDAO {
+    // 1. Sửa hàm lấy danh sách (loại bỏ cột rental_price_per_hour)
     public ArrayList<XeMayDTO> layDanhSachXeMay() {
         ArrayList<XeMayDTO> ds = new ArrayList<>();
-        // Lấy tất cả các cột để tránh lỗi thiếu dữ liệu
         String sql = "SELECT v.*, c.phone AS renter_phone " +
                 "FROM VEHICLES v " +
                 "LEFT JOIN RENTAL_CONTRACTS r ON v.vehicle_id = r.vehicle_id AND r.contract_status = 'ACTIVE' " +
@@ -29,20 +29,20 @@ public class XeMayDAO {
                 xe.setColor(rs.getString("color"));
                 xe.setManufactureYear(rs.getInt("manufacture_year"));
                 xe.setRentalPricePerDay(rs.getDouble("rental_price_per_day"));
-                xe.setRentalPricePerHour(rs.getDouble("rental_price_per_hour"));
+                // ĐÃ XÓA DÒNG: xe.setRentalPricePerHour(...);
                 xe.setStatus(rs.getString("status"));
                 xe.setRenterPhone(rs.getString("renter_phone"));
                 ds.add(xe);
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Nếu bảng vẫn trống, hãy check lỗi ở Console (Output) của IntelliJ
+            e.printStackTrace();
         }
         return ds;
     }
 
-    // Thêm vào trong class XeMayDAO
+    // 2. Sửa hàm thêm xe (Chỉ còn 8 dấu ?)
     public boolean themXeMay(XeMayDTO xe) {
-        String sql = "INSERT INTO VEHICLES (vehicle_code, brand, model, license_plate, color, manufacture_year, rental_price_per_day, rental_price_per_hour, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO VEHICLES (vehicle_code, brand, model, license_plate, color, manufacture_year, rental_price_per_day, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = MySQLConnect.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -53,8 +53,7 @@ public class XeMayDAO {
             ps.setString(5, xe.getColor());
             ps.setInt(6, xe.getManufactureYear());
             ps.setDouble(7, xe.getRentalPricePerDay());
-            ps.setDouble(8, xe.getRentalPricePerHour());
-            ps.setString(9, xe.getStatus());
+            ps.setString(8, xe.getStatus());
 
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
@@ -63,8 +62,9 @@ public class XeMayDAO {
         return false;
     }
 
+    // 3. Sửa hàm sửa xe (Loại bỏ rental_price_per_hour)
     public boolean suaXeMay(XeMayDTO xe) {
-        String sql = "UPDATE VEHICLES SET brand=?, model=?, license_plate=?, color=?, manufacture_year=?, rental_price_per_day=?, rental_price_per_hour=?, status=? WHERE vehicle_code=?";
+        String sql = "UPDATE VEHICLES SET brand=?, model=?, license_plate=?, color=?, manufacture_year=?, rental_price_per_day=?, status=? WHERE vehicle_code=?";
         try (Connection conn = MySQLConnect.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -74,23 +74,9 @@ public class XeMayDAO {
             ps.setString(4, xe.getColor());
             ps.setInt(5, xe.getManufactureYear());
             ps.setDouble(6, xe.getRentalPricePerDay());
-            ps.setDouble(7, xe.getRentalPricePerHour());
-            ps.setString(8, xe.getStatus());
-            ps.setString(9, xe.getVehicleCode());
+            ps.setString(7, xe.getStatus());
+            ps.setString(8, xe.getVehicleCode());
 
-            return ps.executeUpdate() > 0;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean xoaXeMay(String vehicleCode) {
-        String sql = "DELETE FROM VEHICLES WHERE vehicle_code=?";
-        try (Connection conn = MySQLConnect.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, vehicleCode);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();

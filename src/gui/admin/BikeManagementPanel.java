@@ -18,9 +18,9 @@ public class BikeManagementPanel extends JPanel {
     private JButton btnSearch;
 
     private JPanel inputPanel;
-    private JTextField txtBikeCode, txtBikeName, txtPlate, txtPriceDay, txtPriceHour, txtColor, txtYear;
+    // ĐÃ XÓA: txtPriceHour
+    private JTextField txtBikeCode, txtBikeName, txtPlate, txtPriceDay, txtColor, txtYear;
     private JComboBox<String> cbStatusInput;
-    private JTextArea txtDesc;
 
     private XeMayBUS xeMayBUS = new XeMayBUS();
     private boolean isEditMode = false;
@@ -39,11 +39,10 @@ public class BikeManagementPanel extends JPanel {
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
         lblTitle.setForeground(new Color(33, 43, 54));
 
-        // --- Cập nhật TopPanel: Sử dụng GridLayout để hai bên trái/phải co giãn đều nhau ---
         JPanel topPanel = new JPanel(new GridLayout(1, 2, 20, 0));
         topPanel.setOpaque(false);
 
-        // Vùng bên trái: Tìm kiếm (Sử dụng GridBagLayout để thanh Search co giãn theo chiều ngang)
+        // Vùng bên trái: Tìm kiếm
         JPanel searchPanel = new JPanel(new GridBagLayout());
         searchPanel.setOpaque(false);
         GridBagConstraints gbcSearch = new GridBagConstraints();
@@ -62,13 +61,12 @@ public class BikeManagementPanel extends JPanel {
         btnSearch = createActionButton("Tìm", new Color(25, 118, 210));
         btnSearch.addActionListener(e -> handleSearch());
 
-        // Layout cho searchPanel
         gbcSearch.weightx = 0; gbcSearch.gridx = 0; searchPanel.add(lblSearch, gbcSearch);
-        gbcSearch.weightx = 1.0; gbcSearch.gridx = 1; searchPanel.add(txtSearch, gbcSearch); // weightx = 1.0 giúp ô nhập co giãn
+        gbcSearch.weightx = 1.0; gbcSearch.gridx = 1; searchPanel.add(txtSearch, gbcSearch);
         gbcSearch.weightx = 0; gbcSearch.gridx = 2; searchPanel.add(cbStatusFilter, gbcSearch);
         gbcSearch.weightx = 0; gbcSearch.gridx = 3; searchPanel.add(btnSearch, gbcSearch);
 
-        // Vùng bên phải: Nút chức năng (FlowLayout.RIGHT)
+        // Vùng bên phải: Nút chức năng
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actionPanel.setOpaque(false);
 
@@ -88,9 +86,9 @@ public class BikeManagementPanel extends JPanel {
         btnEdit.addActionListener(e -> handlePrepareEdit());
 
         btnRefresh.addActionListener(e -> {
-            txtSearch.setText("");              // Làm sạch thanh tìm kiếm
-            cbStatusFilter.setSelectedIndex(0); // Đưa ComboBox trạng thái về "Tất cả trạng thái"
-            loadDataFromDB();                   // Tải lại dữ liệu từ Database
+            txtSearch.setText("");
+            cbStatusFilter.setSelectedIndex(0);
+            loadDataFromDB();
         });
 
         actionPanel.add(btnAdd);
@@ -100,42 +98,38 @@ public class BikeManagementPanel extends JPanel {
         topPanel.add(searchPanel);
         topPanel.add(actionPanel);
 
-        // --- Cập nhật TableModel: Thêm đầy đủ các cột theo yêu cầu ---
-        String[] columns = {"Mã xe", "Tên xe", "Biển số", "Màu", "Năm SX", "Giá Thuê/Ngày", "Giá Thuê/Giờ", "Trạng thái", "SĐT khách thuê"};
+        // --- Cập nhật TableModel: ĐÃ XÓA cột "Giá Thuê/Giờ" ---
+        String[] columns = {"Mã xe", "Tên xe", "Biển số", "Màu", "Năm SX", "Giá Thuê/Ngày", "Trạng thái", "SĐT khách thuê"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
 
-        // 1. (Row & Grid)
         table.setRowHeight(35);
         table.setShowVerticalLines(false);
-        table.setGridColor(new Color(230, 230, 230)); // Đường kẻ ngang màu xám rất nhạt
-        table.setSelectionBackground(new Color(200, 225, 255)); // Màu nền màu xanh dương nhạt khi click chọn 1 dòng
-        table.setSelectionForeground(Color.BLACK); // Màu chữ khi được chọn
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 14)); // Font chữ nội dung to và dễ đọc hơn
+        table.setGridColor(new Color(230, 230, 230));
+        table.setSelectionBackground(new Color(200, 225, 255));
+        table.setSelectionForeground(Color.BLACK);
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-        // 2. Tùy chỉnh Hàng tiêu đề (Header - Hàng trên cùng)
         javax.swing.table.JTableHeader header = table.getTableHeader();
-        header.setPreferredSize(new Dimension(100, 40)); // Chiều cao của hàng trên cùng
-        header.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Chữ in đậm
-        header.setBackground(new Color(70,130,180)); // MÀU XANH NHẠT NHẠT (Light Blue)
-        header.setForeground(new Color(255,255,255)); // Chữ màu xám đen mượt mà
-        header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(200, 200, 200))); // Kẻ một đường viền mỏng dưới header
+        header.setPreferredSize(new Dimension(100, 40));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        header.setBackground(new Color(70,130,180));
+        header.setForeground(new Color(255,255,255));
         header.setOpaque(true);
 
-        // 3. (Tùy chọn) Căn giữa nội dung một số cột cho đẹp mắt
         javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(javax.swing.JLabel.CENTER);
-        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // Căn giữa Mã xe
-        table.getColumnModel().getColumn(2).setCellRenderer(centerRenderer); // Căn giữa Biển số
-        table.getColumnModel().getColumn(3).setCellRenderer(centerRenderer); // Căn giữa Màu
-        table.getColumnModel().getColumn(4).setCellRenderer(centerRenderer); // Căn giữa Năm SX
-        table.getColumnModel().getColumn(5).setCellRenderer(centerRenderer); // Căn giữa Giá/Ngày
-        table.getColumnModel().getColumn(6).setCellRenderer(centerRenderer); // Căn giữa Giá/Giờ
-        table.getColumnModel().getColumn(7).setCellRenderer(centerRenderer); // Căn giữa Trạng thái
-        table.getColumnModel().getColumn(8).setCellRenderer(centerRenderer);
+        // Cập nhật lại chỉ số cột sau khi xóa
+        table.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(5).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(6).setCellRenderer(centerRenderer);
+        table.getColumnModel().getColumn(7).setCellRenderer(centerRenderer);
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -167,43 +161,38 @@ public class BikeManagementPanel extends JPanel {
         txtColor = new JTextField(10);
         txtYear = new JTextField(5);
         txtPriceDay = new JTextField(10);
-        txtPriceHour = new JTextField(10);
         cbStatusInput = new JComboBox<>(new String[]{"AVAILABLE", "MAINTENANCE", "DELETED"});
 
         JButton btnSave = createActionButton("Lưu dữ liệu", new Color(46, 125, 50));
         JButton btnCancel = createActionButton("Hủy", Color.GRAY);
 
-        // Hàng 1 (gridy = 0)
+        // Hàng 1
         gbc.gridx = 0; gbc.gridy = 0; inputPanel.add(new JLabel("Mã xe:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtBikeCode, gbc);
         gbc.gridx = 2; inputPanel.add(new JLabel("Tên xe:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtBikeName, gbc);
 
-        // Hàng 2 (gridy = 1)
+        // Hàng 2
         gbc.gridx = 0; gbc.gridy = 1; inputPanel.add(new JLabel("Biển số:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtPlate, gbc);
         gbc.gridx = 2; inputPanel.add(new JLabel("Màu sắc:"), gbc);
         gbc.gridx = 3; inputPanel.add(txtColor, gbc);
 
-        // Hàng 3 (gridy = 2)
+        // Hàng 3: Đã sửa lại để Giá Thuê/Ngày và Năm sản xuất nằm cùng hàng cho cân đối
         gbc.gridx = 0; gbc.gridy = 2; inputPanel.add(new JLabel("Giá Thuê/Ngày:"), gbc);
         gbc.gridx = 1; inputPanel.add(txtPriceDay, gbc);
-        gbc.gridx = 2; inputPanel.add(new JLabel("Giá Thuê/Giờ:"), gbc);
-        gbc.gridx = 3; inputPanel.add(txtPriceHour, gbc);
+        gbc.gridx = 2; gbc.gridy = 2; inputPanel.add(new JLabel("Năm sản xuất:"), gbc);
+        gbc.gridx = 3; inputPanel.add(txtYear, gbc);
 
-        // Hàng 4 (gridy = 3) - Thêm Năm sản xuất và Trạng thái
-        gbc.gridx = 0; gbc.gridy = 3; inputPanel.add(new JLabel("Năm sản xuất:"), gbc);
-        gbc.gridx = 1; inputPanel.add(txtYear, gbc);
-        gbc.gridx = 2; inputPanel.add(new JLabel("Trạng thái:"), gbc);
-        gbc.gridx = 3; inputPanel.add(cbStatusInput, gbc);
+        // Hàng 4: Trạng thái và Nút bấm
+        gbc.gridx = 0; gbc.gridy = 3; inputPanel.add(new JLabel("Trạng thái:"), gbc);
+        gbc.gridx = 1; inputPanel.add(cbStatusInput, gbc);
 
-        // Hàng 5 (gridy = 4) - Các nút bấm
-        gbc.gridx = 3; gbc.gridy = 4;
+        gbc.gridx = 3; gbc.gridy = 3;
         JPanel btnGroup = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnGroup.add(btnCancel); btnGroup.add(btnSave);
         inputPanel.add(btnGroup, gbc);
 
-        // Gắn sự kiện cho các nút
         btnCancel.addActionListener(e -> inputPanel.setVisible(false));
         btnSave.addActionListener(e -> handleAddBike());
     }
@@ -237,19 +226,17 @@ public class BikeManagementPanel extends JPanel {
         }
     }
 
-    // --- Cập nhật addRowToTable: Đổ dữ liệu vào đúng các cột mới ---
     private void addRowToTable(XeMayDTO xe) {
         String priceDay = String.format("%,.0f VNĐ", xe.getRentalPricePerDay());
-        String priceHour = String.format("%,.0f VNĐ", xe.getRentalPricePerHour());
+        // Đã xóa priceHour
 
         Object[] row = {
                 xe.getVehicleCode(),
-                xe.getVehicleName(), // Kết hợp Brand + Model
+                xe.getVehicleName(),
                 xe.getLicensePlate(),
                 xe.getColor(),
                 xe.getManufactureYear(),
                 priceDay,
-                priceHour,
                 xe.getStatus(),
                 xe.getRenterPhone()
         };
@@ -268,17 +255,15 @@ public class BikeManagementPanel extends JPanel {
 
     private void handleAddBike() {
         try {
-            // 1. Lấy dữ liệu
             String code = txtBikeCode.getText().trim();
-            String name = txtBikeName.getText().trim(); // Ví dụ: "Honda Airblade"
+            String name = txtBikeName.getText().trim();
             String plate = txtPlate.getText().trim();
             String color = txtColor.getText().trim();
             int year = Integer.parseInt(txtYear.getText().trim());
             double priceDay = Double.parseDouble(txtPriceDay.getText().trim());
-            double priceHour = Double.parseDouble(txtPriceHour.getText().trim());
+            // Đã xóa priceHour
             String status = cbStatusInput.getSelectedItem().toString();
 
-            // Validate cơ bản
             if(code.isEmpty() || name.isEmpty() || plate.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ các trường bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -287,24 +272,22 @@ public class BikeManagementPanel extends JPanel {
             if (isEditMode) {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow != -1) {
-                    // Cột số 7 trong tableModel của bạn chính là cột Trạng thái
-                    String oldStatus = tableModel.getValueAt(selectedRow, 7).toString();
+                    // Trạng thái giờ ở cột số 6
+                    String oldStatus = tableModel.getValueAt(selectedRow, 6).toString();
 
                     if (oldStatus.equals("RENTED") && status.equals("DELETED")) {
                         JOptionPane.showMessageDialog(this,
                                 "Không thể thanh lý xe đang trong quá trình cho thuê. Vui lòng thanh lý hợp đồng trước!",
                                 "Cảnh báo bảo toàn dữ liệu",
                                 JOptionPane.WARNING_MESSAGE);
-                        return; // Dừng lại, không chạy code update phía dưới nữa
+                        return;
                     }
                 }
             }
 
-            // Tách Hãng xe (Brand) và Dòng xe (Model) từ Tên xe
             String brand = name.contains(" ") ? name.substring(0, name.indexOf(" ")) : name;
             String model = name.contains(" ") ? name.substring(name.indexOf(" ") + 1) : "";
 
-            // 2. Gán vào DTO
             XeMayDTO xe = new XeMayDTO();
             xe.setVehicleCode(code);
             xe.setBrand(brand);
@@ -313,17 +296,22 @@ public class BikeManagementPanel extends JPanel {
             xe.setColor(color);
             xe.setManufactureYear(year);
             xe.setRentalPricePerDay(priceDay);
-            xe.setRentalPricePerHour(priceHour);
+            // Đã xóa xe.setRentalPricePerHour(priceHour);
             xe.setStatus(status);
 
-            // 3. Gọi BUS xử lý Thêm hoặc Sửa
             if (!isEditMode) {
                 if (xeMayBUS.themXeMay(xe)) {
                     JOptionPane.showMessageDialog(this, "Thêm xe thành công!");
                     inputPanel.setVisible(false);
                     loadDataFromDB();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Lỗi thêm xe! Có thể trùng mã.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    // Cập nhật lại câu báo lỗi cho sát với thực tế DB
+                    JOptionPane.showMessageDialog(this,
+                            "Lỗi thêm xe! Vui lòng kiểm tra lại:\n" +
+                                    "1. Mã xe hoặc Biển số xe đã bị trùng.\n" +
+                                    "2. Năm sản xuất phải >= 2000.\n" +
+                                    "3. Giá thuê phải > 0.",
+                            "Lỗi thao tác CSDL", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
                 if (xeMayBUS.suaXeMay(xe)) {
@@ -349,22 +337,19 @@ public class BikeManagementPanel extends JPanel {
         isEditMode = true;
         inputPanel.setBorder(BorderFactory.createTitledBorder("Sửa thông tin xe"));
 
-        // Đổ dữ liệu từ bảng lên các JTextField
         txtBikeCode.setText(tableModel.getValueAt(selectedRow, 0).toString());
-        txtBikeCode.setEnabled(false); // Mã xe không được sửa
+        txtBikeCode.setEnabled(false);
 
         txtBikeName.setText(tableModel.getValueAt(selectedRow, 1).toString());
         txtPlate.setText(tableModel.getValueAt(selectedRow, 2).toString());
         txtColor.setText(tableModel.getValueAt(selectedRow, 3).toString());
         txtYear.setText(tableModel.getValueAt(selectedRow, 4).toString());
 
-        // Xử lý chuỗi tiền tệ (Bỏ chữ " VNĐ" và dấu phẩy để lấy lại số thực)
         String pDayStr = tableModel.getValueAt(selectedRow, 5).toString().replaceAll("[^\\d]", "");
-        String pHourStr = tableModel.getValueAt(selectedRow, 6).toString().replaceAll("[^\\d]", "");
         txtPriceDay.setText(pDayStr);
-        txtPriceHour.setText(pHourStr);
+        // Đã xóa xử lý pHourStr
 
-        cbStatusInput.setSelectedItem(tableModel.getValueAt(selectedRow, 7).toString());
+        cbStatusInput.setSelectedItem(tableModel.getValueAt(selectedRow, 6).toString());
 
         inputPanel.setVisible(true);
         revalidate();
@@ -377,7 +362,7 @@ public class BikeManagementPanel extends JPanel {
         txtColor.setText("");
         txtYear.setText("");
         txtPriceDay.setText("");
-        txtPriceHour.setText("");
+        // Đã xóa txtPriceHour
         cbStatusInput.setSelectedIndex(0);
     }
 }
