@@ -24,12 +24,11 @@ public class RegisterFrame extends JFrame {
     public RegisterFrame() {
         taiKhoanBUS = new TaiKhoanBUS();
 
-        setTitle("Đăng Ký - Hệ Thống Cho Thuê Xe Máy");
+        setTitle("Đăng Ký Tài Khoản - Hệ Thống Cho Thuê Xe Máy");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 600);
         setLocationRelativeTo(null);
 
-        // màu nền tổng thể giống LoginFrame
         getContentPane().setBackground(new Color(245, 247, 250));
         setLayout(new GridBagLayout());
 
@@ -43,19 +42,15 @@ public class RegisterFrame extends JFrame {
         registerPanel.setBackground(Color.WHITE);
         registerPanel.setBorder(new EmptyBorder(40, 50, 40, 50));
 
-        // Thêm bo góc và bóng đổ (FlatLaf)
         registerPanel.putClientProperty(FlatClientProperties.STYLE,
                 "arc: 20; " +
                         "[light]background: darken(@background, 0%);");
 
-        // PHẦN TIÊU ĐỀ (Giữ lại logo nếu bạn muốn đồng bộ, hoặc có thể bỏ đi để tiết kiệm không gian dọc)
         JLabel lblLogo = new JLabel();
         try {
             lblLogo.setIcon(new ImageIcon(getClass().getResource("/images/motor.png")));
-        } catch (Exception e) {
-            // Bỏ qua nếu không load được ảnh
-        }
-        lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        } catch (Exception e) { }
+         lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel lblTitle = new JLabel("ĐĂNG KÝ TÀI KHOẢN");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
@@ -66,7 +61,7 @@ public class RegisterFrame extends JFrame {
         // 1. Username
         txtUsername = new JTextField(20);
         txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtUsername.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Tên đăng nhập");
+        txtUsername.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Số điện thoại");
         txtUsername.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         txtUsername.setMaximumSize(new Dimension(300, 40));
 
@@ -77,7 +72,7 @@ public class RegisterFrame extends JFrame {
         txtPassword.putClientProperty(FlatClientProperties.STYLE, "showRevealButton: true");
         txtPassword.setMaximumSize(new Dimension(300, 40));
 
-        // 3. Re-Password (Nhập lại mật khẩu)
+        // 3. Re-Password
         txtRePassword = new JPasswordField(20);
         txtRePassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtRePassword.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Nhập lại mật khẩu");
@@ -123,13 +118,12 @@ public class RegisterFrame extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 dispose(); // Đóng form Register
-                new LoginFrame().setVisible(true); // Mở form Login
+                new LoginFrame().setVisible(true);
             }
         });
 
         linksPanel.add(lblBackToLogin);
 
-        // THÊM CÁC THÀNH PHẦN VÀO PANEL 
         registerPanel.add(lblLogo);
         registerPanel.add(lblTitle);
 
@@ -151,7 +145,6 @@ public class RegisterFrame extends JFrame {
         add(registerPanel, new GridBagConstraints());
     }
 
-    // Thay thế logic đăng ký bên trong sự kiện click của btnRegister
     private void handleRegister() {
         try {
             String username = txtUsername.getText().trim();
@@ -161,7 +154,6 @@ public class RegisterFrame extends JFrame {
             TaiKhoanDTO newAccount = new TaiKhoanDTO();
             newAccount.setUsername(username);
 
-            // Truyền 3 tham số xuống BUS để kiểm tra
             if (taiKhoanBUS.dangKy(newAccount, password, rePassword)) {
                 JOptionPane.showMessageDialog(this, "Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 this.dispose();
@@ -171,10 +163,8 @@ public class RegisterFrame extends JFrame {
             }
 
         } catch (IllegalArgumentException ex) {
-            // Bắt lỗi: Trùng tên, pass ngắn, pass không khớp
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Lỗi Nhập Liệu", JOptionPane.WARNING_MESSAGE);
         } catch (RuntimeException ex) {
-            // Bắt lỗi: Sập MySQL
             JOptionPane.showMessageDialog(this, "Lỗi kết nối máy chủ: " + ex.getMessage(), "Lỗi Database", JOptionPane.ERROR_MESSAGE);
         }
     }

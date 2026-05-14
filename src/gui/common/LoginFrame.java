@@ -62,14 +62,14 @@ public class LoginFrame extends JFrame {
         // 1. Username
         txtUsername = new JTextField(20);
         txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtUsername.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Tên đăng nhập");
+        txtUsername.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Username");
         txtUsername.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
         txtUsername.setMaximumSize(new Dimension(300, 40));
 
         // 2. Password
         txtPassword = new JPasswordField(20);
         txtPassword.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtPassword.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Mật khẩu");
+        txtPassword.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Password");
         txtPassword.putClientProperty(FlatClientProperties.STYLE, "showRevealButton: true");
         txtPassword.setMaximumSize(new Dimension(300, 40));
 
