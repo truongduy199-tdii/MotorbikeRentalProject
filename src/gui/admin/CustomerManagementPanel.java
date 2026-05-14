@@ -68,7 +68,7 @@ public class CustomerManagementPanel extends JPanel {
         txtSearch = new JTextField();
         txtSearch.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Tên, SĐT hoặc CCCD...");
 
-        String[] statusSearch = {"Tất cả trạng thái", "ACTIVE", "INACTIVE", "BLACKLISTED"};
+        String[] statusSearch = {"Tất cả trạng thái", "ACTIVE", "INACTIVE"};
         cbStatusFilter = new JComboBox<>(statusSearch);
 
         btnSearch = createActionButton("Tìm", new Color(25, 118, 210));
@@ -187,7 +187,7 @@ public class CustomerManagementPanel extends JPanel {
         txtBirthday.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "dd/MM/yyyy");
         txtDriverLicense = new JTextField(10);
         txtAddress = new JTextField(20);
-        cbStatusInput = new JComboBox<>(new String[]{"ACTIVE", "INACTIVE", "BLACKLISTED"});
+        cbStatusInput = new JComboBox<>(new String[]{"ACTIVE", "INACTIVE"});
 
         JButton btnSave = createActionButton("Lưu dữ liệu", new Color(46, 125, 50));
         JButton btnCancel = createActionButton("Hủy", Color.GRAY);

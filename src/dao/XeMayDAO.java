@@ -10,10 +10,13 @@ public class XeMayDAO {
     // 1. Sửa hàm lấy danh sách (loại bỏ cột rental_price_per_hour)
     public ArrayList<XeMayDTO> layDanhSachXeMay() {
         ArrayList<XeMayDTO> ds = new ArrayList<>();
-        String sql = "SELECT v.*, c.phone AS renter_phone " +
-                "FROM VEHICLES v " +
-                "LEFT JOIN RENTAL_CONTRACTS r ON v.vehicle_id = r.vehicle_id AND r.contract_status = 'ACTIVE' " +
-                "LEFT JOIN CUSTOMERS c ON r.customer_id = c.customer_id";
+        // Sử dụng subquery để tìm SĐT của hợp đồng ACTIVE gần nhất (chống trùng lặp dòng)
+        String sql = "SELECT v.*, " +
+                "(SELECT c.phone FROM RENTAL_CONTRACTS r " +
+                " JOIN CUSTOMERS c ON r.customer_id = c.customer_id " +
+                " WHERE r.vehicle_id = v.vehicle_id AND r.contract_status = 'ACTIVE' " +
+                " ORDER BY r.contract_id DESC LIMIT 1) AS renter_phone " +
+                "FROM VEHICLES v";
 
         try (Connection conn = MySQLConnect.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -29,9 +32,17 @@ public class XeMayDAO {
                 xe.setColor(rs.getString("color"));
                 xe.setManufactureYear(rs.getInt("manufacture_year"));
                 xe.setRentalPricePerDay(rs.getDouble("rental_price_per_day"));
-                // ĐÃ XÓA DÒNG: xe.setRentalPricePerHour(...);
-                xe.setStatus(rs.getString("status"));
-                xe.setRenterPhone(rs.getString("renter_phone"));
+
+                String status = rs.getString("status");
+                xe.setStatus(status);
+
+                // FIX LOGIC: Chỉ gắn SĐT khách nếu xe đang thực sự cho thuê (RENTED)
+                if ("RENTED".equals(status)) {
+                    xe.setRenterPhone(rs.getString("renter_phone"));
+                } else {
+                    xe.setRenterPhone(null); // File DTO của bạn sẽ tự động hiển thị "---" khi giá trị null
+                }
+
                 ds.add(xe);
             }
         } catch (Exception e) {

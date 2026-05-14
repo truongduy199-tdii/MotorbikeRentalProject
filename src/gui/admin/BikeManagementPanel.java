@@ -272,12 +272,13 @@ public class BikeManagementPanel extends JPanel {
             if (isEditMode) {
                 int selectedRow = table.getSelectedRow();
                 if (selectedRow != -1) {
-                    // Trạng thái giờ ở cột số 6
+                    // Cột 6 là cột Trạng thái
                     String oldStatus = tableModel.getValueAt(selectedRow, 6).toString();
 
-                    if (oldStatus.equals("RENTED") && status.equals("DELETED")) {
+                    // FIX LỖ HỔNG: Nếu xe đang RENTED thì cấm đổi sang TẤT CẢ các trạng thái khác
+                    if (oldStatus.equals("RENTED") && !status.equals("RENTED")) {
                         JOptionPane.showMessageDialog(this,
-                                "Không thể thanh lý xe đang trong quá trình cho thuê. Vui lòng thanh lý hợp đồng trước!",
+                                "Xe đang được khách thuê (RENTED).\nKhông thể tự ý đổi sang trạng thái " + status + "!\nVui lòng kết thúc/thanh lý hợp đồng của xe này trước.",
                                 "Cảnh báo bảo toàn dữ liệu",
                                 JOptionPane.WARNING_MESSAGE);
                         return;
