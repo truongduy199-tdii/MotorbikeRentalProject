@@ -102,6 +102,14 @@ public class LoginFrame extends JFrame {
         linksPanel.setMaximumSize(new Dimension(300, 30));
 
         lblRegister = new JLabel("<html><u>Chưa có tài khoản? Đăng ký ngay!</u></html>");
+        // Thêm sự kiện click chuột cho link Đăng ký bên trong LoginFrame
+        lblRegister.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                dispose(); // Đóng form Login
+                new RegisterFrame().setVisible(true); // Bật form Register
+            }
+        });
         lblRegister.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblRegister.setForeground(new Color(25, 118, 210));
         lblRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));

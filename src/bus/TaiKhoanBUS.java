@@ -18,4 +18,16 @@ public class TaiKhoanBUS {
         // 2. So sánh với database
         return taiKhoanDAO.kiemTraDangNhap(username, hashedInputPassword);
     }
+
+    public String dangKy(TaiKhoanDTO tk, String rePassword, String plainPassword) {
+
+        String hashedPass = SecurityHelper.hashPassword(plainPassword);
+
+        tk.setPassword(hashedPass);
+
+        if (taiKhoanDAO.themTaiKhoan(tk)) {
+            return "Đăng ký thành công!";
+        }
+        return "Đăng ký thất bại, lỗi hệ thống!";
+    }
 }
